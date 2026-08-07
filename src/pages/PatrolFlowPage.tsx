@@ -135,6 +135,8 @@ export function PatrolFlowPage() {
   const completedIds = new Set(session?.sessionLogs?.map((l: any) => l.checkpointId) ?? []);
   const routeCheckpoints = session?.route?.checkpoints ?? [];
   const completionPct = session ? Math.round(session.completionRate) : 0;
+  const nextCheckpointObj = routeCheckpoints.find((rc: any) => !completedIds.has(rc.checkpointId));
+  const nextCheckpoint = nextCheckpointObj?.checkpoint;
 
   const severityConfig = {
     NORMAL: { label: '✅ Normal', cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
@@ -208,24 +210,84 @@ export function PatrolFlowPage() {
             <p className="text-xs text-gray-500 text-right">{completionPct}% complete</p>
           </div>
 
+          {/* Next Required Location Card */}
+          {nextCheckpoint ? (
+            <div className="card p-4 bg-gradient-to-r from-brand-900/60 to-surface-800 border-brand-500/40 space-y-3 shadow-lg">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-1 rounded-full bg-brand-500/20 text-brand-300 text-[10px] font-bold tracking-wider uppercase flex items-center gap-1.5 border border-brand-500/30">
+                  <span className="w-2 h-2 rounded-full bg-brand-400 animate-ping shrink-0" />
+                  Next Required Location
+                </span>
+                <span className="text-xs text-gray-400 font-mono">
+                  {completedIds.size + 1} of {routeCheckpoints.length}
+                </span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>📍</span> {nextCheckpoint.name}
+                </h3>
+                {nextCheckpoint.description && (
+                  <p className="text-xs text-gray-400 mt-0.5">{nextCheckpoint.description}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setPhase('scan-qr')}
+                className="btn-primary w-full py-3 flex items-center justify-center gap-2 shadow-xl shadow-brand-600/20"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 0h.01M5 8v.01M3 12h.01M5 16H3m2 0h.01M5 16v.01" />
+                </svg>
+                Scan Next Location ({nextCheckpoint.name})
+              </button>
+            </div>
+          ) : (
+            <div className="card p-4 bg-emerald-500/10 border-emerald-500/30 text-center space-y-2">
+              <p className="text-emerald-300 font-bold text-sm">🎉 All checkpoints completed!</p>
+              <p className="text-xs text-gray-400">You have scanned all checkpoints in this route.</p>
+            </div>
+          )}
+
           {/* Checkpoint list */}
           <div className="card p-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Checkpoints</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">All Route Checkpoints</p>
             {routeCheckpoints.map((rc: any, idx: number) => {
               const done = completedIds.has(rc.checkpointId);
+              const isNext = nextCheckpointObj?.checkpointId === rc.checkpointId;
               return (
-                <div key={rc.id} className={`flex items-center gap-3 p-2 rounded-lg ${done ? 'bg-emerald-500/10' : 'bg-surface-900/50'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${done ? 'bg-emerald-500 text-white' : 'bg-surface-700 text-gray-500'}`}>
+                <div
+                  key={rc.id}
+                  className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    done
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
+                      : isNext
+                      ? 'bg-brand-500/15 border-brand-500/50 text-white shadow-md shadow-brand-500/10 ring-1 ring-brand-500/30'
+                      : 'bg-surface-900/50 border-white/5 text-gray-400'
+                  }`}
+                >
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      done
+                        ? 'bg-emerald-500 text-white'
+                        : isNext
+                        ? 'bg-brand-500 text-white animate-pulse'
+                        : 'bg-surface-700 text-gray-400'
+                    }`}
+                  >
                     {done ? '✓' : idx + 1}
                   </div>
-                  <span className={`text-sm ${done ? 'text-emerald-300' : 'text-gray-400'}`}>{rc.checkpoint.name}</span>
-                  {done && <span className="ml-auto text-[10px] text-emerald-500 font-semibold">DONE</span>}
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm font-medium ${done ? 'text-emerald-200' : isNext ? 'text-white font-semibold' : 'text-gray-300'}`}>
+                      {rc.checkpoint.name}
+                    </p>
+                  </div>
+                  {done && <span className="ml-auto text-[10px] text-emerald-400 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">DONE</span>}
+                  {isNext && <span className="ml-auto text-[10px] text-brand-300 font-bold bg-brand-500/30 px-2 py-0.5 rounded-full border border-brand-500/40 animate-pulse">NEXT REQUIRED</span>}
                 </div>
               );
             })}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <button onClick={() => setPhase('scan-qr')} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 0h.01M5 8v.01M3 12h.01M5 16H3m2 0h.01M5 16v.01" /></svg>
               Scan Checkpoint QR

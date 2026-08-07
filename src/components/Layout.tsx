@@ -70,24 +70,45 @@ export function Layout() {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-surface-800 border-b border-white/5 h-14 flex items-center px-4 gap-3">
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 z-40 bg-surface-800 border-b border-white/5 flex items-center px-4 gap-3 shrink-0"
+        style={{
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          height: 'calc(3.5rem + env(safe-area-inset-top, 0px))',
+        }}
+      >
         <div className="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center shrink-0">
           <ShieldIcon className="w-4 h-4 text-white" />
         </div>
-        <span className="font-bold text-white text-sm flex-1">PatrolSystem</span>
+        <span className="font-bold text-white text-sm flex-1 truncate">PatrolSystem</span>
         <InstallPwaButton />
-        <button onClick={logout} className="text-gray-400 hover:text-red-400 transition-colors shrink-0">
+        <button
+          onClick={logout}
+          className="text-gray-400 hover:text-red-400 active:text-red-300 transition-colors shrink-0 p-2 -mr-1"
+          title="Sign out"
+        >
           <LogoutIcon className="w-5 h-5" />
         </button>
       </div>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto md:p-8 p-4 pt-20 md:pt-8">
+      <main
+        className="flex-1 overflow-auto p-4 md:p-8 md:pt-8 md:pb-8"
+        style={{
+          paddingTop: 'calc(4.25rem + env(safe-area-inset-top, 0px))',
+          paddingBottom: 'calc(6.5rem + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
         <Outlet />
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-800 border-t border-white/5 flex">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-800 border-t border-white/5 flex shadow-2xl"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
         {visibleNav.slice(0, 5).map((item) => (
           <NavLink
             key={item.to}
@@ -95,12 +116,12 @@ export function Layout() {
             end={item.to === '/'}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors ${
-                isActive ? 'text-brand-400' : 'text-gray-500 hover:text-gray-300'
+                isActive ? 'text-brand-400' : 'text-gray-400 hover:text-gray-200'
               }`
             }
           >
             <item.icon className="w-5 h-5" />
-            {item.label}
+            <span className="truncate max-w-full px-0.5">{item.label}</span>
           </NavLink>
         ))}
       </nav>
