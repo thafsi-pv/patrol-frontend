@@ -122,8 +122,37 @@ export function ScanPage() {
       {phase === 'scanning' && (
         <div className="space-y-4">
           {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in">
-              {error}
+            <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm animate-fade-in space-y-3">
+              <div className="flex items-start gap-2.5">
+                <svg className="w-5 h-5 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19H19a2 2 0 001.75-2.96l-6.96-12.04a2 2 0 00-3.5 0L3.25 16.04A2 2 0 005.07 19z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="font-semibold text-red-200">Permission or Camera Error</p>
+                  <p className="text-xs text-red-300/80 mt-0.5">{error}</p>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-red-500/20 flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setPhase('scanning');
+                  }}
+                  className="btn-primary py-2 px-3 text-xs bg-red-600 hover:bg-red-500 border-none text-white flex-1"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Retry Camera & Location Access
+                </button>
+              </div>
+
+              <div className="bg-black/30 p-2.5 rounded-xl text-[11px] text-gray-400 space-y-1">
+                <p className="font-semibold text-gray-300">If permissions were denied in your browser:</p>
+                <p>• <strong>Chrome / Edge / Safari:</strong> Tap the lock or tune icon 🔒 next to the web address (URL bar) → <em>Site settings</em> → reset <strong>Camera</strong> and <strong>Location</strong> to <em>Allow</em>.</p>
+                <p>• <strong>iOS Settings:</strong> Settings → Privacy & Security → Location Services / Camera → Allow for Safari/Chrome.</p>
+              </div>
             </div>
           )}
           <div className="card overflow-hidden">
@@ -133,9 +162,22 @@ export function ScanPage() {
               className="w-full aspect-square bg-surface-900"
             />
           </div>
-          <p className="text-center text-xs text-gray-600">
-            Camera permission required. QR code must fill the guide box.
-          </p>
+          <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+            <span>Camera & GPS required</span>
+            <button
+              onClick={() => {
+                setError(null);
+                setPhase('scanning');
+              }}
+              className="text-brand-400 hover:text-brand-300 font-medium underline flex items-center gap-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Reset / Retry Permissions
+            </button>
+          </div>
         </div>
       )}
 
