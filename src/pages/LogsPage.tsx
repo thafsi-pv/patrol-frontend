@@ -121,6 +121,7 @@ export function LogsPage() {
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Checkpoint</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Guard</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Distance</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Scanned Location</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">GPS Accuracy</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Flag Reason</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Time</th>
@@ -146,6 +147,13 @@ export function LogsPage() {
                     </td>
                     <td className="px-5 py-3.5 hidden md:table-cell text-gray-400">
                       {log.distanceMeters != null ? `${Math.round(log.distanceMeters)}m` : '—'}
+                    </td>
+                    <td className="px-5 py-3.5 hidden lg:table-cell text-xs font-mono text-gray-400">
+                      {log.scannedLatitude != null && log.scannedLongitude != null ? (
+                        <span>{log.scannedLatitude.toFixed(6)}, {log.scannedLongitude.toFixed(6)}</span>
+                      ) : (
+                        <span className="text-gray-700">—</span>
+                      )}
                     </td>
                     <td className="px-5 py-3.5 hidden lg:table-cell text-gray-400">
                       {log.gpsAccuracyMeters != null ? `±${Math.round(log.gpsAccuracyMeters)}m` : '—'}
