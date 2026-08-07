@@ -103,6 +103,17 @@ export function useDeactivateRoute() {
 
 // ─── Session hooks ────────────────────────────────────────────────────────────
 
+export function useMyActiveSession() {
+  return useQuery<PatrolSession | null>({
+    queryKey: ['patrol-sessions', 'my-active'],
+    queryFn: async () => {
+      const res = await apiClient.get('/patrol-sessions/my-active');
+      return res.data || null;
+    },
+    refetchInterval: 30000,
+  });
+}
+
 export function useActiveSessions() {
   return useQuery<PatrolSession[]>({
     queryKey: ['patrol-sessions', 'active'],

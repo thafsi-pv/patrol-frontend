@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { useRoutes, useStartPatrol, useScanCheckpoint, useEndPatrol, useSession } from '../hooks/usePatrolSessions';
+import { useRoutes, useStartPatrol, useScanCheckpoint, useEndPatrol, useSession, useMyActiveSession } from '../hooks/usePatrolSessions';
 import { uploadImageToR2 } from '../hooks/useIncidents';
 
 type FlowPhase = 'select-route' | 'active' | 'scan-qr' | 'checkpoint-form' | 'completed';
 
 export function PatrolFlowPage() {
   const { data: routes, isLoading: routesLoading } = useRoutes();
+  const { data: activeSessionData } = useMyActiveSession();
 
   const startMutation = useStartPatrol();
   const scanMutation = useScanCheckpoint();
@@ -17,6 +18,14 @@ export function PatrolFlowPage() {
   const [selectedRouteId, setSelectedRouteId] = useState('');
   const [shift, setShift] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-resume existing active session on load
+  useEffect(() => {
+    if (activeSessionData && phase === 'select-route' && !sessionId) {
+      setSessionId(activeSessionData.id);
+      setPhase('active');
+    }
+  }, [activeSessionData]);
 
   // After successful QR scan
   const [scannedQr, setScannedQr] = useState<string | null>(null);
@@ -217,12 +226,13 @@ export function PatrolFlowPage() {
           </div>
 
           <div className="flex gap-3">
-            <button onClick={() => setPhase('scan-qr')} className="btn-primary flex-1 py-3">
+            <button onClick={() => setPhase('scan-qr')} className="btn-primary flex-1 py-3 flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 0h.01M5 8v.01M3 12h.01M5 16H3m2 0h.01M5 16v.01" /></svg>
-              Scan QR Code
+              Scan Checkpoint QR
             </button>
-            <button onClick={handleEnd} disabled={endMutation.isPending} className="btn-secondary px-5 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10">
-              {endMutation.isPending ? '…' : 'End Patrol'}
+            <button onClick={handleEnd} disabled={endMutation.isPending} className="btn-secondary px-5 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 border-red-500/20 font-semibold flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" /></svg>
+              {endMutation.isPending ? 'Stopping…' : 'Stop Patrol'}
             </button>
           </div>
         </div>
