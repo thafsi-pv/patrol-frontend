@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- SEO -->
+    <title>Patrol System</title>
+    <meta name="description" content="QR-based guard patrol checkpoint verification system with GPS geolocation." />
+
+    <!-- PWA essential meta tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PatrolSystem" />
+    <meta name="theme-color" content="#0f1117" />
+    <meta name="application-name" content="PatrolSystem" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+    <link rel="apple-touch-icon" href="/pwa-icon.svg" />
+
+    <!-- Prevent zoom on input focus on iOS -->
+    <style>
+      input, select, textarea { font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

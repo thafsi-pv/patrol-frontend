@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    @apply h-full;
+  }
+  body {
+    @apply h-full bg-surface-900 text-gray-100 font-sans antialiased;
+  }
+  #root {
+    @apply h-full;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+           bg-brand-600 hover:bg-brand-500 active:bg-brand-700
+           text-white font-semibold text-sm
+           transition-all duration-200 ease-out
+           shadow-lg shadow-brand-900/30
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+           bg-surface-600 hover:bg-surface-500 border border-white/10
+           text-gray-200 font-semibold text-sm
+           transition-all duration-200 ease-out
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+           bg-red-600/20 hover:bg-red-600/40 border border-red-500/30
+           text-red-400 font-semibold text-sm
+           transition-all duration-200 ease-out
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .card {
+    @apply bg-surface-800 border border-white/5 rounded-2xl shadow-xl;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-surface-700 border border-white/10
+           text-gray-100 placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50
+           transition-all duration-200;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-400 mb-1.5;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .table-row-hover {
+    @apply hover:bg-white/[0.03] transition-colors duration-150;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+           text-gray-400 hover:text-white hover:bg-white/[0.07]
+           transition-all duration-150;
+  }
+
+  .nav-link-active {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium
+           text-white bg-brand-600/20 border border-brand-500/30;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* QR Scanner Viewport Fixes */
+#qr-scanner-viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+#qr-scanner-viewport video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 1rem;
+}
+
+#qr-scanner-viewport canvas {
+  display: none !important;
+}
+
+#qr-scanner-viewport img {
+  display: none !important;
+}
+
+/* A4 Print Styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+
+
+
+
+
