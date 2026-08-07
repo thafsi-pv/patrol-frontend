@@ -153,7 +153,7 @@ export function Layout() {
 
       {/* Mobile bottom nav */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-800 border-t border-white/5 flex shadow-2xl"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-800 border-t border-white/5 flex shadow-2xl after:content-[''] after:absolute after:top-full after:left-0 after:right-0 after:h-32 after:bg-surface-800"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}

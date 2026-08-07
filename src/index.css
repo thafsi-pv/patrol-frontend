@@ -6,15 +6,27 @@
 @layer base {
   * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
   html {
     @apply h-full;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overscroll-behavior-y: none;
   }
   body {
     @apply h-full bg-surface-900 text-gray-100 font-sans antialiased;
+    touch-action: manipulation;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
   #root {
     @apply h-full;
+  }
+  input, select, textarea, button {
+    font-size: 16px !important;
+    touch-action: manipulation;
   }
 }
 
@@ -115,9 +127,3 @@
     color: black !important;
   }
 }
-
-
-
-
-
-
