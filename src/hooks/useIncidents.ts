@@ -30,6 +30,11 @@ export interface PresignedUrlResponse {
   uploadUrl: string;
   imageUrl: string;
   r2Key: string;
+  timestamp?: number;
+  signature?: string;
+  apiKey?: string;
+  cloudName?: string;
+  publicId?: string;
 }
 
 export interface CreateIncidentPayload {
@@ -64,36 +69,45 @@ export function useCreateIncident() {
 }
 
 /**
- * Utility to request a presigned URL from backend and upload image directly to R2
+ * Utility to request a signed Cloudinary upload params from backend and upload image directly to Cloudinary
  */
 export async function uploadImageToR2(file: File): Promise<{ imageUrl: string; r2Key: string }> {
-  // 1. Get presigned upload URL from backend
+  // 1. Get signed upload parameters from backend
   const ext = file.name.split('.').pop() || 'jpg';
   const presignedRes = await apiClient.post<PresignedUrlResponse>('/incidents/upload-url', {
     contentType: file.type || 'image/jpeg',
     fileExtension: ext,
   });
 
-  const { uploadUrl, imageUrl, r2Key } = presignedRes.data;
+  const { uploadUrl, imageUrl, r2Key, timestamp, signature, apiKey } = presignedRes.data;
 
-  // 2. Direct PUT request to R2 uploadUrl (or mock mode fallback)
+  // 2. Direct upload to Cloudinary using FormData (or mock mode fallback if not configured yet)
   if (uploadUrl.includes('mock=true')) {
-    // Mock mode if R2 not yet configured in .env
-    console.warn('R2 credentials not configured. Using placeholder URL.');
+    console.warn('Cloudinary credentials not configured in .env yet. Using mock image URL.');
     return { imageUrl: URL.createObjectURL(file), r2Key };
   }
 
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('api_key', apiKey || '');
+  formData.append('timestamp', String(timestamp || ''));
+  formData.append('signature', signature || '');
+  formData.append('folder', 'patrol_issues');
+
   const uploadRes = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': file.type || 'image/jpeg',
-    },
-    body: file,
+    method: 'POST',
+    body: formData,
   });
 
   if (!uploadRes.ok) {
-    throw new Error(`Failed to upload image to Cloudflare R2 (${uploadRes.statusText})`);
+    const errJson = await uploadRes.json().catch(() => ({}));
+    throw new Error(`Failed to upload image (${errJson?.error?.message || uploadRes.statusText})`);
   }
 
-  return { imageUrl, r2Key };
+  const resData = await uploadRes.json();
+
+  return {
+    imageUrl: resData.secure_url || imageUrl,
+    r2Key: resData.public_id || r2Key,
+  };
 }
