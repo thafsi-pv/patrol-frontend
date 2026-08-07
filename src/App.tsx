@@ -9,6 +9,11 @@ import { IncidentsPage } from './pages/IncidentsPage';
 import { LogsPage } from './pages/LogsPage';
 import { ScanPage } from './pages/ScanPage';
 import { UsersPage } from './pages/UsersPage';
+import { RoutesPage } from './pages/RoutesPage';
+import { PatrolFlowPage } from './pages/PatrolFlowPage';
+import { LiveMonitorPage } from './pages/LiveMonitorPage';
+import { SessionHistoryPage } from './pages/SessionHistoryPage';
+import { SessionDetailPage } from './pages/SessionDetailPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +42,9 @@ export default function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="scan" element={<ScanPage />} />
+            <Route path="patrol" element={<PatrolFlowPage />} />
             <Route path="incidents" element={<IncidentsPage />} />
+            <Route path="sessions/:id" element={<SessionDetailPage />} />
 
             {/* Admin-only routes */}
             <Route
@@ -45,6 +52,30 @@ export default function App() {
               element={
                 <RequireAuth role="ADMIN">
                   <CheckpointsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="routes"
+              element={
+                <RequireAuth role="ADMIN">
+                  <RoutesPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="monitor"
+              element={
+                <RequireAuth role="ADMIN">
+                  <LiveMonitorPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="sessions"
+              element={
+                <RequireAuth role="ADMIN">
+                  <SessionHistoryPage />
                 </RequireAuth>
               }
             />
@@ -73,3 +104,4 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+

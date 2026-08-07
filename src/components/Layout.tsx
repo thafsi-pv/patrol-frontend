@@ -5,12 +5,17 @@ import { InstallPwaButton } from './InstallPwaButton';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: HomeIcon, roles: ['ADMIN', 'GUARD'] as const },
-  { to: '/scan', label: 'Scan QR', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
+  { to: '/patrol', label: 'Start Patrol', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
+  { to: '/scan', label: 'Quick Scan', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
+  { to: '/monitor', label: 'Live Monitor', icon: ShieldIcon, roles: ['ADMIN'] as const },
+  { to: '/routes', label: 'Patrol Routes', icon: MapPinIcon, roles: ['ADMIN'] as const },
+  { to: '/sessions', label: 'Session History', icon: ClipboardIcon, roles: ['ADMIN'] as const },
   { to: '/incidents', label: 'Report Issues', icon: AlertIcon, roles: ['ADMIN', 'GUARD'] as const },
   { to: '/checkpoints', label: 'Checkpoints', icon: MapPinIcon, roles: ['ADMIN'] as const },
   { to: '/logs', label: 'Patrol Logs', icon: ClipboardIcon, roles: ['ADMIN'] as const },
   { to: '/users', label: 'Users', icon: UsersIcon, roles: ['ADMIN'] as const },
 ];
+
 
 export function Layout() {
   const { user } = useAuthStore();
