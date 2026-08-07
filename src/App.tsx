@@ -5,6 +5,7 @@ import { RequireAuth } from './components/RequireAuth';
 import { CheckpointsPage } from './pages/CheckpointsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
+import { IncidentsPage } from './pages/IncidentsPage';
 import { LogsPage } from './pages/LogsPage';
 import { ScanPage } from './pages/ScanPage';
 import { UsersPage } from './pages/UsersPage';
@@ -36,6 +37,7 @@ export default function App() {
           >
             <Route index element={<DashboardPage />} />
             <Route path="scan" element={<ScanPage />} />
+            <Route path="incidents" element={<IncidentsPage />} />
 
             {/* Admin-only routes */}
             <Route
