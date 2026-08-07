@@ -1,7 +1,8 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useLogout } from '../hooks/useAuth';
 import { InstallPwaButton } from './InstallPwaButton';
+import { useMyActiveSession } from '../hooks/usePatrolSessions';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: HomeIcon, roles: ['ADMIN', 'GUARD'] as const },
@@ -20,6 +21,8 @@ const navItems = [
 export function Layout() {
   const { user } = useAuthStore();
   const logout = useLogout();
+  const location = useLocation();
+  const { data: activeSession } = useMyActiveSession();
 
   const visibleNav = navItems.filter((n) => n.roles.includes(user?.role as any));
 
@@ -37,17 +40,29 @@ export function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 space-y-1">
-          {visibleNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/'}
-              className={({ isActive }) => (isActive ? 'nav-link-active' : 'nav-link')}
-            >
-              <item.icon className="w-4 h-4 shrink-0" />
-              {item.label}
-            </NavLink>
-          ))}
+          {visibleNav.map((item) => {
+            const isPatrolNav = item.to === '/patrol';
+            const hasActivePatrol = isPatrolNav && !!activeSession;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) => (isActive ? 'nav-link-active' : 'nav-link')}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                <span className="flex-1 truncate">
+                  {hasActivePatrol ? 'Ongoing Patrol' : item.label}
+                </span>
+                {hasActivePatrol && (
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                    ACTIVE
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
 
         {/* User info + logout */}
@@ -81,6 +96,15 @@ export function Layout() {
           <ShieldIcon className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-white text-sm flex-1 truncate">PatrolSystem</span>
+        {activeSession && (
+          <Link
+            to="/patrol"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            ACTIVE
+          </Link>
+        )}
         <InstallPwaButton />
         <button
           onClick={logout}
@@ -99,6 +123,31 @@ export function Layout() {
           paddingBottom: 'calc(6.5rem + env(safe-area-inset-bottom, 0px))',
         }}
       >
+        {/* Active patrol notification banner when browsing other pages */}
+        {activeSession && location.pathname !== '/patrol' && (
+          <Link
+            to="/patrol"
+            className="mb-4 max-w-7xl mx-auto p-3 rounded-xl bg-gradient-to-r from-emerald-950/90 via-surface-800 to-surface-800 border border-emerald-500/40 flex items-center justify-between gap-3 text-xs shadow-lg animate-fade-in group hover:border-emerald-500/60 transition-all block"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <div className="min-w-0">
+                <p className="font-semibold text-emerald-300 truncate">
+                  Ongoing Patrol Active: <span className="text-white">{activeSession.route?.name}</span>
+                </p>
+                <p className="text-[11px] text-gray-400 truncate">
+                  {activeSession.completedCount} of {activeSession.totalCount} checkpoints completed
+                </p>
+              </div>
+            </div>
+            <span className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500/30 font-semibold shrink-0 transition-colors flex items-center gap-1">
+              Resume Patrol →
+            </span>
+          </Link>
+        )}
         <Outlet />
       </main>
 
@@ -109,21 +158,35 @@ export function Layout() {
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
-        {visibleNav.slice(0, 5).map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === '/'}
-            className={({ isActive }) =>
-              `flex-1 flex flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors ${
-                isActive ? 'text-brand-400' : 'text-gray-400 hover:text-gray-200'
-              }`
-            }
-          >
-            <item.icon className="w-5 h-5" />
-            <span className="truncate max-w-full px-0.5">{item.label}</span>
-          </NavLink>
-        ))}
+        {visibleNav.slice(0, 5).map((item) => {
+          const isPatrolNav = item.to === '/patrol';
+          const hasActivePatrol = isPatrolNav && !!activeSession;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === '/'}
+              className={({ isActive }) =>
+                `flex-1 flex flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors ${
+                  isActive ? 'text-brand-400' : 'text-gray-400 hover:text-gray-200'
+                }`
+              }
+            >
+              <div className="relative">
+                <item.icon className="w-5 h-5" />
+                {hasActivePatrol && (
+                  <span className="absolute -top-1 -right-1.5 flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-surface-800"></span>
+                  </span>
+                )}
+              </div>
+              <span className="truncate max-w-full px-0.5">
+                {hasActivePatrol ? 'Ongoing' : item.label}
+              </span>
+            </NavLink>
+          );
+        })}
       </nav>
     </div>
   );

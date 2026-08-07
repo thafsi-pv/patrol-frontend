@@ -7,7 +7,7 @@ type FlowPhase = 'select-route' | 'active' | 'scan-qr' | 'checkpoint-form' | 'co
 
 export function PatrolFlowPage() {
   const { data: routes, isLoading: routesLoading } = useRoutes();
-  const { data: activeSessionData } = useMyActiveSession();
+  const { data: activeSessionData, isLoading: activeLoading } = useMyActiveSession();
 
   const startMutation = useStartPatrol();
   const scanMutation = useScanCheckpoint();
@@ -19,11 +19,13 @@ export function PatrolFlowPage() {
   const [shift, setShift] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-resume existing active session on load
+  // Auto-resume existing active session on load or navigation back
   useEffect(() => {
-    if (activeSessionData && phase === 'select-route' && !sessionId) {
+    if (activeSessionData) {
       setSessionId(activeSessionData.id);
-      setPhase('active');
+      if (phase === 'select-route') {
+        setPhase('active');
+      }
     }
   }, [activeSessionData]);
 
@@ -41,8 +43,10 @@ export function PatrolFlowPage() {
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const scannerDivId = 'patrol-qr-scanner';
 
-  // Fetch session details for progress
-  const { data: session, refetch: refetchSession } = useSession(sessionId ?? '');
+  // Fetch session details for progress, with active session fallback
+  const targetSessionId = sessionId || activeSessionData?.id || '';
+  const { data: sessionData, refetch: refetchSession } = useSession(targetSessionId);
+  const session = sessionData || activeSessionData;
 
   // ─── QR scanner lifecycle ────────────────────────────────────────────────────
   useEffect(() => {
@@ -143,6 +147,15 @@ export function PatrolFlowPage() {
     ISSUE_FOUND: { label: '⚠️ Issue Found', cls: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
     EMERGENCY: { label: '🚨 Emergency', cls: 'border-red-500/40 bg-red-500/10 text-red-300' },
   };
+
+  if (activeLoading && !session && !sessionId) {
+    return (
+      <div className="card p-12 text-center text-gray-400 max-w-lg mx-auto animate-fade-in">
+        <div className="w-8 h-8 border-2 border-brand-500/30 border-t-brand-500 rounded-full animate-spin mx-auto mb-3" />
+        Checking active patrol session…
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-lg mx-auto animate-fade-in space-y-6">
