@@ -22,9 +22,108 @@ export function Layout() {
   const { user } = useAuthStore();
   const logout = useLogout();
   const location = useLocation();
-  const { data: activeSession } = useMyActiveSession();
+  const { data: activeSession, isPending: sessionLoading } = useMyActiveSession();
 
   const visibleNav = navItems.filter((n) => n.roles.includes(user?.role as any));
+
+  // Show loader only on the very first fetch (isPending = no cached data yet)
+  if (sessionLoading) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '1.5rem',
+          background: 'var(--color-surface-900, #0f1117)',
+          zIndex: 9999,
+        }}
+      >
+        {/* Animated shield / spinner */}
+        <div style={{ position: 'relative', width: 72, height: 72 }}>
+          {/* Outer pulsing ring */}
+          <span
+            style={{
+              position: 'absolute',
+              inset: 0,
+              borderRadius: '50%',
+              border: '2px solid rgba(99,102,241,0.4)',
+              animation: 'patrol-ping 1.6s cubic-bezier(0,0,0.2,1) infinite',
+            }}
+          />
+          {/* Inner ring */}
+          <span
+            style={{
+              position: 'absolute',
+              inset: 6,
+              borderRadius: '50%',
+              border: '2px solid rgba(99,102,241,0.25)',
+              animation: 'patrol-ping 1.6s cubic-bezier(0,0,0.2,1) infinite 0.4s',
+            }}
+          />
+          {/* Center icon container */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 12,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 24px rgba(99,102,241,0.5)',
+            }}
+          >
+            <ShieldIcon className="w-5 h-5 text-white" />
+          </div>
+        </div>
+
+        {/* Spinner dots */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: '#6366f1',
+                opacity: 0.3,
+                animation: `patrol-bounce 1.2s ease-in-out infinite`,
+                animationDelay: `${i * 0.2}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Text */}
+        <div style={{ textAlign: 'center', maxWidth: 260 }}>
+          <p style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 15, margin: 0 }}>
+            Please wait
+          </p>
+          <p style={{ color: '#64748b', fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
+            Something is setting up&hellip; this will only take a moment.
+          </p>
+        </div>
+
+        {/* Keyframes injected inline */}
+        <style>{`
+          @keyframes patrol-ping {
+            0%   { transform: scale(1);   opacity: 1; }
+            75%  { transform: scale(1.6); opacity: 0; }
+            100% { transform: scale(1.6); opacity: 0; }
+          }
+          @keyframes patrol-bounce {
+            0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+            40%            { opacity: 1;   transform: scale(1.2); }
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full">
@@ -96,15 +195,6 @@ export function Layout() {
           <ShieldIcon className="w-4 h-4 text-white" />
         </div>
         <span className="font-bold text-white text-sm flex-1 truncate">PatrolSystem</span>
-        {activeSession && (
-          <Link
-            to="/patrol"
-            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            ACTIVE
-          </Link>
-        )}
         <InstallPwaButton />
         <button
           onClick={logout}
