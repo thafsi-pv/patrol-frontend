@@ -40,6 +40,10 @@ export function IncidentsPage() {
       setError('Please provide an issue title.');
       return;
     }
+    if (!description.trim()) {
+      setError('Please provide a description of the issue.');
+      return;
+    }
     if (selectedFiles.length === 0) {
       setError('Please upload at least one image of the issue.');
       return;
@@ -60,7 +64,7 @@ export function IncidentsPage() {
       setUploadProgress('Saving report…');
       await createIncidentMutation.mutateAsync({
         title,
-        description: description || undefined,
+        description: description.trim(),
         checkpointId: checkpointId || undefined,
         images: uploadedImages,
       });
@@ -126,7 +130,9 @@ export function IncidentsPage() {
                   </span>
                 </div>
                 {incident.description && (
-                  <p className="text-gray-400 text-xs line-clamp-3">{incident.description}</p>
+                  <p className="text-gray-300 text-xs leading-relaxed bg-surface-900/60 p-2.5 rounded-lg border border-white/5">
+                    {incident.description}
+                  </p>
                 )}
               </div>
 
@@ -217,24 +223,38 @@ export function IncidentsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">Description Details</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">
+                  Issue Description *
+                </label>
                 <textarea
                   rows={3}
-                  placeholder="Describe the issue, location details, severity..."
+                  required
+                  placeholder="Describe the issue in detail (location, severity, what happened)..."
                   className="input text-sm"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
-              {/* Photo Upload Area */}
+              {/* Photo Upload Area: Camera vs Gallery */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1">
-                  Upload Evidence Photos * (Multiple allowed)
+                  Evidence Photos * (Camera or Gallery)
                 </label>
 
+                {/* Hidden File Inputs */}
+                {/* 1. Camera Input (capture="environment") */}
                 <input
                   ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                {/* 2. Gallery Input (multiple selection) */}
+                <input
+                  id="gallery-file-input"
                   type="file"
                   accept="image/*"
                   multiple
@@ -242,31 +262,49 @@ export function IncidentsPage() {
                   onChange={handleFileChange}
                 />
 
-                <div className="grid grid-cols-4 gap-2 mt-2">
-                  {previewUrls.map((url, idx) => (
-                    <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900 group">
-                      <img src={url} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(idx)}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-90 hover:opacity-100"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-
+                {/* Dual Action Buttons */}
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="aspect-square rounded-lg border-2 border-dashed border-white/10 hover:border-brand-500/50 flex flex-col items-center justify-center gap-1 text-gray-500 hover:text-brand-300 transition-colors bg-surface-800/40"
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 hover:bg-brand-500/30 transition-all text-xs font-semibold"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    <svg className="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="text-[10px]">Add Photo</span>
+                    Take Photo (Camera)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('gallery-file-input')?.click()}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-surface-700/50 border border-white/10 text-gray-200 hover:bg-surface-700 transition-all text-xs font-semibold"
+                  >
+                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Choose from Gallery
                   </button>
                 </div>
+
+                {/* Selected Image Previews */}
+                {previewUrls.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mt-2">
+                    {previewUrls.map((url, idx) => (
+                      <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900 group">
+                        <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-90 hover:opacity-100"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {uploadProgress && (
