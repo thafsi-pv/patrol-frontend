@@ -85,11 +85,14 @@ export function PatrolFlowPage() {
   };
 
   // ─── Submit checkpoint form ───────────────────────────────────────────────────
+  const [outOfRangeInfo, setOutOfRangeInfo] = useState<{ distance: number; radius: number; checkpoint: string } | null>(null);
+
   const handleCheckpointSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scannedQr || !sessionId) return;
     setSubmitting(true);
     setError(null);
+    setOutOfRangeInfo(null);
     try {
       // Get GPS
       const pos = await new Promise<GeolocationPosition>((res, rej) =>
@@ -119,7 +122,18 @@ export function PatrolFlowPage() {
       await refetchSession();
       setPhase('active');
     } catch (err: any) {
-      setError(err?.response?.data?.message ?? err?.message ?? 'Scan submission failed');
+      const msg: string = err?.response?.data?.message ?? err?.message ?? 'Scan submission failed';
+      // Parse out-of-range info from the backend message
+      const distMatch = msg.match(/You are (\d+)m away from "(.+?)"\. You must be within (\d+)m/);
+      if (distMatch) {
+        setOutOfRangeInfo({
+          distance: parseInt(distMatch[1], 10),
+          checkpoint: distMatch[2],
+          radius: parseInt(distMatch[3], 10),
+        });
+      } else {
+        setError(msg);
+      }
     } finally { setSubmitting(false); }
   };
 
@@ -341,6 +355,81 @@ export function PatrolFlowPage() {
           <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-mono">
             QR: {scannedQr}
           </div>
+
+          {/* Out-of-Range Error Card */}
+          {outOfRangeInfo && (
+            <div className="rounded-2xl border border-red-500/30 bg-red-500/8 overflow-hidden animate-fade-in">
+              {/* Header */}
+              <div className="flex items-center gap-3 p-4 bg-red-500/10 border-b border-red-500/20">
+                <div className="w-9 h-9 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-red-200 font-bold text-sm">Too Far Away — Submission Blocked</p>
+                  <p className="text-red-400/80 text-xs mt-0.5">Move closer to "{outOfRangeInfo.checkpoint}"</p>
+                </div>
+              </div>
+
+              {/* Distance meter */}
+              <div className="p-4 flex items-center gap-5">
+                {/* Circular ring indicator */}
+                <div className="relative w-20 h-20 shrink-0">
+                  <svg viewBox="0 0 36 36" className="w-20 h-20 -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(239,68,68,0.15)" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="15.9" fill="none"
+                      stroke="#ef4444" strokeWidth="3"
+                      strokeDasharray={`${Math.min((outOfRangeInfo.radius / outOfRangeInfo.distance) * 100, 100)} 100`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-red-300 font-bold text-sm leading-none">{outOfRangeInfo.distance}m</span>
+                    <span className="text-red-500 text-[9px] mt-0.5">away</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Your distance</span>
+                    <span className="text-red-300 font-bold">{outOfRangeInfo.distance}m</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-red-500 rounded-full transition-all"
+                      style={{ width: `${Math.min((outOfRangeInfo.radius / outOfRangeInfo.distance) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Required radius</span>
+                    <span className="text-emerald-400 font-bold">{outOfRangeInfo.radius}m</span>
+                  </div>
+                  <p className="text-[11px] text-red-400/70 pt-1">
+                    You need to be <strong className="text-red-300">{outOfRangeInfo.distance - outOfRangeInfo.radius}m closer</strong> to submit.
+                    This attempt has been logged for admin review.
+                  </p>
+                </div>
+              </div>
+
+              {/* Retry button */}
+              <div className="px-4 pb-4">
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={handleCheckpointSubmit as any}
+                  className="w-full py-2.5 rounded-xl bg-red-600/20 border border-red-500/30 text-red-300 text-xs font-semibold hover:bg-red-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {submitting ? 'Checking location…' : 'Retry — Re-check My Location'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{error}</div>}
 
