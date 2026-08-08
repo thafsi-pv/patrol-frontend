@@ -85,7 +85,9 @@ export function PatrolFlowPage() {
   };
 
   // ─── Submit checkpoint form ───────────────────────────────────────────────────
-  const [outOfRangeInfo, setOutOfRangeInfo] = useState<{ distance: number; radius: number; checkpoint: string } | null>(null);
+  const [outOfRangeInfo, setOutOfRangeInfo] = useState<{ distanceStr: string; radiusStr: string; distanceVal: number; radiusVal: number; checkpoint: string } | null>(null);
+
+  const formatDist = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${Math.round(m)}m`);
 
   const handleCheckpointSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,13 +125,21 @@ export function PatrolFlowPage() {
       setPhase('active');
     } catch (err: any) {
       const msg: string = err?.response?.data?.message ?? err?.message ?? 'Scan submission failed';
-      // Parse out-of-range info from the backend message
-      const distMatch = msg.match(/You are (\d+)m away from "(.+?)"\. You must be within (\d+)m/);
+      // Parse out-of-range info from the backend message (handles e.g. "1.25 km" or "450m")
+      const distMatch = msg.match(/You are (.+?) away from "(.+?)"\. You must be within (.+?) to submit/);
       if (distMatch) {
+        const parseVal = (str: string) => {
+          const num = parseFloat(str);
+          return str.includes('km') ? num * 1000 : num;
+        };
+        const dVal = parseVal(distMatch[1]);
+        const rVal = parseVal(distMatch[3]);
         setOutOfRangeInfo({
-          distance: parseInt(distMatch[1], 10),
+          distanceStr: distMatch[1],
           checkpoint: distMatch[2],
-          radius: parseInt(distMatch[3], 10),
+          radiusStr: distMatch[3],
+          distanceVal: dVal,
+          radiusVal: rVal,
         });
       } else {
         setError(msg);
@@ -382,12 +392,12 @@ export function PatrolFlowPage() {
                     <circle
                       cx="18" cy="18" r="15.9" fill="none"
                       stroke="#ef4444" strokeWidth="3"
-                      strokeDasharray={`${Math.min((outOfRangeInfo.radius / outOfRangeInfo.distance) * 100, 100)} 100`}
+                      strokeDasharray={`${Math.min((outOfRangeInfo.radiusVal / outOfRangeInfo.distanceVal) * 100, 100)} 100`}
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-red-300 font-bold text-sm leading-none">{outOfRangeInfo.distance}m</span>
+                    <span className="text-red-300 font-bold text-xs text-center px-1 leading-none">{outOfRangeInfo.distanceStr}</span>
                     <span className="text-red-500 text-[9px] mt-0.5">away</span>
                   </div>
                 </div>
@@ -395,20 +405,20 @@ export function PatrolFlowPage() {
                 <div className="flex-1 space-y-2">
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Your distance</span>
-                    <span className="text-red-300 font-bold">{outOfRangeInfo.distance}m</span>
+                    <span className="text-red-300 font-bold">{outOfRangeInfo.distanceStr}</span>
                   </div>
                   <div className="w-full h-1.5 bg-surface-900 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-red-500 rounded-full transition-all"
-                      style={{ width: `${Math.min((outOfRangeInfo.radius / outOfRangeInfo.distance) * 100, 100)}%` }}
+                      style={{ width: `${Math.min((outOfRangeInfo.radiusVal / outOfRangeInfo.distanceVal) * 100, 100)}%` }}
                     />
                   </div>
                   <div className="flex justify-between text-xs">
                     <span className="text-gray-400">Required radius</span>
-                    <span className="text-emerald-400 font-bold">{outOfRangeInfo.radius}m</span>
+                    <span className="text-emerald-400 font-bold">{outOfRangeInfo.radiusStr}</span>
                   </div>
                   <p className="text-[11px] text-red-400/70 pt-1">
-                    You need to be <strong className="text-red-300">{outOfRangeInfo.distance - outOfRangeInfo.radius}m closer</strong> to submit.
+                    You need to be <strong className="text-red-300">{formatDist(outOfRangeInfo.distanceVal - outOfRangeInfo.radiusVal)} closer</strong> to submit.
                     This attempt has been logged for admin review.
                   </p>
                 </div>
