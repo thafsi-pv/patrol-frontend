@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { useUsers, useCreateUser } from '../hooks/useUsers';
+import { useUsers, useCreateUser, useToggleWhatsAppAlert } from '../hooks/useUsers';
 
 export function UsersPage() {
   const { data: users, isLoading } = useUsers();
   const createMutation = useCreateUser();
+  const toggleAlertMutation = useToggleWhatsAppAlert();
 
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'GUARD' as 'ADMIN' | 'GUARD', mobileNumber: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'GUARD' as 'ADMIN' | 'GUARD', mobileNumber: '', whatsappAlertEnabled: true });
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,9 +19,17 @@ export function UsersPage() {
         mobileNumber: form.mobileNumber || undefined,
       });
       setShowModal(false);
-      setForm({ name: '', email: '', password: '', role: 'GUARD', mobileNumber: '' });
+      setForm({ name: '', email: '', password: '', role: 'GUARD', mobileNumber: '', whatsappAlertEnabled: true });
     } catch (err: any) {
       setFormError(err?.response?.data?.message ?? 'Failed to create user');
+    }
+  };
+
+  const handleToggleAlert = async (userId: string, currentVal: boolean) => {
+    try {
+      await toggleAlertMutation.mutateAsync({ userId, enabled: !currentVal });
+    } catch (err) {
+      alert('Failed to update alert preference');
     }
   };
 
@@ -57,13 +66,14 @@ export function UsersPage() {
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">WhatsApp Alerts</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Device Bound</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Created</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {users.map((user) => (
+                {users.map((user: any) => (
                   <tr key={user.id} className="table-row-hover">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -74,7 +84,25 @@ export function UsersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-gray-400">{user.email}</td>
-                    <td className="px-5 py-4 text-gray-400">{(user as any).mobileNumber || '—'}</td>
+                    <td className="px-5 py-4 text-gray-400">{user.mobileNumber || '—'}</td>
+                    <td className="px-5 py-4">
+                      {user.role === 'ADMIN' ? (
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={user.whatsappAlertEnabled}
+                            onChange={() => handleToggleAlert(user.id, user.whatsappAlertEnabled)}
+                          />
+                          <div className="w-9 h-5 bg-surface-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                          <span className="ml-2 text-xs font-medium text-gray-300">
+                            {user.whatsappAlertEnabled ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </label>
+                      ) : (
+                        <span className="text-xs text-gray-600">—</span>
+                      )}
+                    </td>
                     <td className="px-5 py-4">
                       <span className={`badge ${user.role === 'ADMIN'
                         ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30'
@@ -148,6 +176,21 @@ export function UsersPage() {
                   onChange={(e) => setForm((f) => ({ ...f, mobileNumber: e.target.value }))}
                   placeholder="e.g. +919876543210" />
               </div>
+
+              {form.role === 'ADMIN' && (
+                <div className="flex items-center gap-2 py-1">
+                  <input
+                    id="form-whatsappAlertEnabled"
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-white/10 bg-surface-900/50 text-brand-600 focus:ring-brand-500"
+                    checked={form.whatsappAlertEnabled}
+                    onChange={(e) => setForm((f) => ({ ...f, whatsappAlertEnabled: e.target.checked }))}
+                  />
+                  <label htmlFor="form-whatsappAlertEnabled" className="text-xs font-semibold text-gray-300">
+                    Enable WhatsApp Incident Alerts for this Admin
+                  </label>
+                </div>
+              )}
 
               <div>
                 <label className="label">Role</label>

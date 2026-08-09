@@ -9,6 +9,7 @@ export interface AppUser {
   role: 'ADMIN' | 'GUARD';
   deviceId?: string;
   mobileNumber?: string;
+  whatsappAlertEnabled: boolean;
   createdAt: string;
 }
 
@@ -32,8 +33,20 @@ export function useCreateUser() {
       password: string;
       role: 'ADMIN' | 'GUARD';
       mobileNumber?: string;
+      whatsappAlertEnabled?: boolean;
     }) => {
       const { data } = await apiClient.post<AppUser>('/users', dto);
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.users.all }),
+  });
+}
+
+export function useToggleWhatsAppAlert() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, enabled }: { userId: string; enabled: boolean }) => {
+      const { data } = await apiClient.patch(`/users/${userId}/whatsapp-alert`, { enabled });
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.users.all }),
