@@ -14,6 +14,7 @@ import { PatrolFlowPage } from './pages/PatrolFlowPage';
 import { LiveMonitorPage } from './pages/LiveMonitorPage';
 import { SessionHistoryPage } from './pages/SessionHistoryPage';
 import { SessionDetailPage } from './pages/SessionDetailPage';
+import { WhatsAppConfigPage } from './pages/WhatsAppConfigPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -47,6 +48,14 @@ export default function App() {
             <Route path="sessions/:id" element={<SessionDetailPage />} />
 
             {/* Admin-only routes */}
+            <Route
+              path="whatsapp"
+              element={
+                <RequireAuth role="ADMIN">
+                  <WhatsAppConfigPage />
+                </RequireAuth>
+              }
+            />
             <Route
               path="checkpoints"
               element={

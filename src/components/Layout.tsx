@@ -8,6 +8,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: HomeIcon, roles: ['ADMIN', 'GUARD'] as const },
   { to: '/patrol', label: 'Start Patrol', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
   { to: '/scan', label: 'Quick Scan', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
+  { to: '/whatsapp', label: 'WhatsApp Link', icon: LinkIcon, roles: ['ADMIN'] as const },
   { to: '/monitor', label: 'Live Monitor', icon: ShieldIcon, roles: ['ADMIN'] as const },
   { to: '/routes', label: 'Patrol Routes', icon: MapPinIcon, roles: ['ADMIN'] as const },
   { to: '/sessions', label: 'Session History', icon: ClipboardIcon, roles: ['ADMIN'] as const },
@@ -337,6 +338,13 @@ function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+  );
+}
+function LinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
     </svg>
   );
 }
