@@ -21,8 +21,19 @@ function StatCard({ label, value, sub, color }: { label: string; value: number |
 }
 
 export function LiveMonitorPage() {
-  const { data: sessions, isLoading, error, dataUpdatedAt } = useActiveSessions();
-  const { data: stats } = useSessionStats();
+  const {
+    data: sessions,
+    isLoading,
+    error,
+    dataUpdatedAt,
+    refetch: refetchSessions,
+    isFetching: isFetchingSessions,
+  } = useActiveSessions();
+  const {
+    data: stats,
+    refetch: refetchStats,
+    isFetching: isFetchingStats,
+  } = useSessionStats();
   const [, setTick] = useState(0);
   const [expandedSessionIds, setExpandedSessionIds] = useState<Record<string, boolean>>({});
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -37,6 +48,12 @@ export function LiveMonitorPage() {
     setExpandedSessionIds(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const isRefreshing = isFetchingSessions || isFetchingStats;
+  const handleRefresh = () => {
+    void refetchSessions();
+    void refetchStats();
+  };
+
   const lastUpdated = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '—';
 
   return (
@@ -44,11 +61,22 @@ export function LiveMonitorPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Live Patrol Monitor</h1>
-          <p className="text-gray-500 mt-1 text-sm">Real-time view of all active patrols · Refreshes every 60s</p>
+          <p className="text-gray-500 mt-1 text-sm">Real-time view of all active patrols · Refreshes every 30s</p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400 bg-surface-800 px-3 py-1.5 rounded-full border border-white/5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-          Refreshed at: {lastUpdated}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-xs text-gray-400 bg-surface-800 px-3 py-1.5 rounded-full border border-white/5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            Refreshed at: {lastUpdated}
+          </div>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5 disabled:opacity-50"
+          >
+            <span className={isRefreshing ? 'inline-block animate-spin' : ''}>↻</span>
+            {isRefreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
         </div>
       </div>
 

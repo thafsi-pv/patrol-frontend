@@ -118,7 +118,7 @@ export function useActiveSessions() {
   return useQuery<PatrolSession[]>({
     queryKey: ['patrol-sessions', 'active'],
     queryFn: async () => (await apiClient.get('/patrol-sessions/active')).data,
-    refetchInterval: 60000, // 1-minute polling as requested
+    refetchInterval: 30_000,
   });
 }
 
@@ -126,7 +126,7 @@ export function useSessionStats() {
   return useQuery<{ active: number; completedToday: number; totalToday: number; emergencies: number }>({
     queryKey: ['patrol-sessions', 'stats'],
     queryFn: async () => (await apiClient.get('/patrol-sessions/stats')).data,
-    refetchInterval: 60000,
+    refetchInterval: 30_000,
   });
 }
 
