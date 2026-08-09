@@ -6,16 +6,19 @@ export function UsersPage() {
   const createMutation = useCreateUser();
 
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'GUARD' as 'ADMIN' | 'GUARD' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'GUARD' as 'ADMIN' | 'GUARD', mobileNumber: '' });
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
     try {
-      await createMutation.mutateAsync(form);
+      await createMutation.mutateAsync({
+        ...form,
+        mobileNumber: form.mobileNumber || undefined,
+      });
       setShowModal(false);
-      setForm({ name: '', email: '', password: '', role: 'GUARD' });
+      setForm({ name: '', email: '', password: '', role: 'GUARD', mobileNumber: '' });
     } catch (err: any) {
       setFormError(err?.response?.data?.message ?? 'Failed to create user');
     }
@@ -53,6 +56,7 @@ export function UsersPage() {
                 <tr className="border-b border-white/5">
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Mobile</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">Device Bound</th>
                   <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Created</th>
@@ -70,6 +74,7 @@ export function UsersPage() {
                       </div>
                     </td>
                     <td className="px-5 py-4 text-gray-400">{user.email}</td>
+                    <td className="px-5 py-4 text-gray-400">{(user as any).mobileNumber || '—'}</td>
                     <td className="px-5 py-4">
                       <span className={`badge ${user.role === 'ADMIN'
                         ? 'bg-brand-500/15 text-brand-400 border border-brand-500/30'
@@ -135,6 +140,13 @@ export function UsersPage() {
                 <input className="input" required type="password" minLength={8} value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   placeholder="Min. 8 characters" />
+              </div>
+
+              <div>
+                <label className="label">Mobile Number (WhatsApp) *</label>
+                <input className="input" required type="tel" value={form.mobileNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, mobileNumber: e.target.value }))}
+                  placeholder="e.g. +919876543210" />
               </div>
 
               <div>

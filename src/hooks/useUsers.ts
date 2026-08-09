@@ -8,6 +8,7 @@ export interface AppUser {
   name: string;
   role: 'ADMIN' | 'GUARD';
   deviceId?: string;
+  mobileNumber?: string;
   createdAt: string;
 }
 
@@ -30,6 +31,7 @@ export function useCreateUser() {
       name: string;
       password: string;
       role: 'ADMIN' | 'GUARD';
+      mobileNumber?: string;
     }) => {
       const { data } = await apiClient.post<AppUser>('/users', dto);
       return data;
