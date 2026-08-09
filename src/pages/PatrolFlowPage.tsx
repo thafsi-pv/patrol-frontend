@@ -354,9 +354,23 @@ export function PatrolFlowPage() {
 
       {/* ── CHECKPOINT FORM ── */}
       {phase === 'checkpoint-form' && (
-        <div className="space-y-4">
+        <div className="space-y-4 relative">
+          {/* Submission overlay — blocks all interaction */}
+          {submitting && (
+            <div className="absolute inset-0 z-20 rounded-2xl bg-surface-900/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-4">
+              <div className="w-12 h-12 rounded-full border-4 border-brand-500/30 border-t-brand-500 animate-spin" />
+              <div className="text-center">
+                <p className="text-white font-semibold text-sm">Submitting…</p>
+                <p className="text-gray-400 text-xs mt-1">Please wait, uploading photos & verifying GPS</p>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-3">
-            <button onClick={() => { setPhase('scan-qr'); setScannedQr(null); }} className="text-gray-400 hover:text-white">
+            <button
+              onClick={() => { setPhase('scan-qr'); setScannedQr(null); }}
+              disabled={submitting}
+              className="text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
+            >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
             </button>
             <h2 className="text-lg font-bold text-white">Checkpoint Report</h2>
@@ -450,7 +464,8 @@ export function PatrolFlowPage() {
               <div className="grid grid-cols-3 gap-2">
                 {(['NORMAL', 'ISSUE_FOUND', 'EMERGENCY'] as const).map(s => (
                   <button key={s} type="button" onClick={() => setSeverity(s)}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all ${severity === s ? severityConfig[s].cls : 'border-white/10 bg-surface-900/50 text-gray-500 hover:border-white/20'}`}
+                    disabled={submitting}
+                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ${severity === s ? severityConfig[s].cls : 'border-white/10 bg-surface-900/50 text-gray-500 hover:border-white/20'}`}
                   >
                     {severityConfig[s].label}
                   </button>
@@ -463,6 +478,7 @@ export function PatrolFlowPage() {
               <label className="block text-xs font-semibold text-gray-400 mb-1">Remarks {severity !== 'NORMAL' && '*'}</label>
               <textarea rows={2} className="input text-sm" value={remarks}
                 onChange={e => setRemarks(e.target.value)}
+                disabled={submitting}
                 placeholder={severity === 'NORMAL' ? 'Optional remarks…' : 'Describe the issue or emergency…'}
               />
             </div>
@@ -476,11 +492,13 @@ export function PatrolFlowPage() {
               <input ref={galleryInputRef} id="patrol-gallery" type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoChange} />
               <div className="grid grid-cols-2 gap-2 mb-2">
                 <button type="button" onClick={() => cameraInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs font-semibold">
+                  disabled={submitting}
+                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
                   📷 Camera
                 </button>
                 <button type="button" onClick={() => galleryInputRef.current?.click()}
-                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-700/50 border border-white/10 text-gray-200 text-xs font-semibold">
+                  disabled={submitting}
+                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-700/50 border border-white/10 text-gray-200 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
                   🖼️ Gallery
                 </button>
               </div>
@@ -490,7 +508,8 @@ export function PatrolFlowPage() {
                     <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-white/10">
                       <img src={url} className="w-full h-full object-cover" />
                       <button type="button" onClick={() => { setPhotoFiles(p => p.filter((_, j) => j !== i)); setPhotoPreviews(p => p.filter((_, j) => j !== i)); }}
-                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-600 rounded-full text-[10px] text-white flex items-center justify-center">✕</button>
+                        disabled={submitting}
+                        className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-600 rounded-full text-[10px] text-white flex items-center justify-center disabled:opacity-0 disabled:pointer-events-none">✕</button>
                     </div>
                   ))}
                 </div>
@@ -498,7 +517,7 @@ export function PatrolFlowPage() {
             </div>
 
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setPhase('active')} className="btn-secondary text-xs flex-1">Cancel</button>
+              <button type="button" onClick={() => setPhase('active')} disabled={submitting} className="btn-secondary text-xs flex-1 disabled:opacity-30 disabled:cursor-not-allowed">Cancel</button>
               <button type="submit" disabled={submitting} className="btn-primary text-xs flex-1 py-3">
                 {submitting ? 'Submitting…' : '✅ Submit & Continue'}
               </button>
