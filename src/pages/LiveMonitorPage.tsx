@@ -61,7 +61,7 @@ export function LiveMonitorPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">Live Patrol Monitor</h1>
-          <p className="text-gray-500 mt-1 text-sm">Real-time view of all active patrols · Refreshes every 30s</p>
+          <p className="text-gray-500 mt-1 text-sm">Real-time view of all active patrols·</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 text-xs text-gray-400 bg-surface-800 px-3 py-1.5 rounded-full border border-white/5">
@@ -75,7 +75,7 @@ export function LiveMonitorPage() {
             className="btn-secondary py-1.5 px-3 text-xs flex items-center gap-1.5 disabled:opacity-50"
           >
             <span className={isRefreshing ? 'inline-block animate-spin' : ''}>↻</span>
-            {isRefreshing ? 'Refreshing…' : 'Refresh'}
+            {/* {isRefreshing ? 'Refreshing…' : 'Refresh'} */}
           </button>
         </div>
       </div>
@@ -126,13 +126,12 @@ export function LiveMonitorPage() {
             return (
               <div
                 key={session.id}
-                className={`card p-5 space-y-4 transition-all duration-300 ${
-                  hasEmergency
-                    ? 'border-2 border-red-500/80 bg-red-950/20 shadow-xl shadow-red-950/40 ring-1 ring-red-500/50'
-                    : hasIssue
+                className={`card p-5 space-y-4 transition-all duration-300 ${hasEmergency
+                  ? 'border-2 border-red-500/80 bg-red-950/20 shadow-xl shadow-red-950/40 ring-1 ring-red-500/50'
+                  : hasIssue
                     ? 'border-2 border-amber-500/70 bg-amber-950/20 shadow-lg shadow-amber-950/30'
                     : 'border border-emerald-500/20 bg-surface-800'
-                }`}
+                  }`}
               >
                 {/* Guard & Route info header */}
                 <div className="flex items-start justify-between gap-3">
@@ -173,9 +172,8 @@ export function LiveMonitorPage() {
                   </div>
                   <div className="w-full h-2 bg-surface-700 rounded-full overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        hasEmergency ? 'bg-gradient-to-r from-red-600 to-amber-500' : 'bg-gradient-to-r from-brand-500 to-emerald-400'
-                      }`}
+                      className={`h-full rounded-full transition-all duration-500 ${hasEmergency ? 'bg-gradient-to-r from-red-600 to-amber-500' : 'bg-gradient-to-r from-brand-500 to-emerald-400'
+                        }`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -312,13 +310,12 @@ export function LiveMonitorPage() {
                           return (
                             <div
                               key={log.id || idx}
-                              className={`p-2.5 rounded-xl border text-xs space-y-1.5 ${
-                                isEmerg
-                                  ? 'bg-red-950/40 border-red-500/40 text-red-200'
-                                  : isIss
+                              className={`p-2.5 rounded-xl border text-xs space-y-1.5 ${isEmerg
+                                ? 'bg-red-950/40 border-red-500/40 text-red-200'
+                                : isIss
                                   ? 'bg-amber-950/30 border-amber-500/30 text-amber-200'
                                   : 'bg-surface-900/60 border-white/5 text-gray-300'
-                              }`}
+                                }`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="font-bold flex items-center gap-1.5">
@@ -332,23 +329,21 @@ export function LiveMonitorPage() {
 
                               <div className="flex items-center gap-2 flex-wrap text-[10px]">
                                 <span
-                                  className={`px-2 py-0.5 rounded font-bold ${
-                                    isEmerg
-                                      ? 'bg-red-600/30 text-red-300 border border-red-500/40'
-                                      : isIss
+                                  className={`px-2 py-0.5 rounded font-bold ${isEmerg
+                                    ? 'bg-red-600/30 text-red-300 border border-red-500/40'
+                                    : isIss
                                       ? 'bg-amber-600/30 text-amber-300 border border-amber-500/40'
                                       : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                  }`}
+                                    }`}
                                 >
                                   {log.severity}
                                 </span>
 
                                 <span
-                                  className={`px-2 py-0.5 rounded font-semibold ${
-                                    log.isVerified
-                                      ? 'bg-emerald-500/10 text-emerald-400'
-                                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                                  }`}
+                                  className={`px-2 py-0.5 rounded font-semibold ${log.isVerified
+                                    ? 'bg-emerald-500/10 text-emerald-400'
+                                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                                    }`}
                                 >
                                   {log.isVerified ? '✓ GPS Verified' : '⚠️ Unverified GPS'}
                                 </span>

@@ -11,7 +11,7 @@ export function IncidentsPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [checkpointId, setCheckpointId] = useState('');
-  
+
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
@@ -91,7 +91,7 @@ export function IncidentsPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Reported Issues & Incidents</h1>
           <p className="text-gray-500 mt-1">
-            Guards can upload multi-photo evidence directly stored on Cloudflare R2 storage.
+            Guards can upload multi-photo evidence directly.
           </p>
         </div>
         <button
