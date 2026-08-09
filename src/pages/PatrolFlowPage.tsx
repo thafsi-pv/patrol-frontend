@@ -142,7 +142,7 @@ export function PatrolFlowPage() {
           radiusVal: rVal,
         });
       } else {
-        setError(msg);
+        setError(`Failed to save scan data (${msg}). Please scan the QR code and update again.`);
       }
     } finally { setSubmitting(false); }
   };
