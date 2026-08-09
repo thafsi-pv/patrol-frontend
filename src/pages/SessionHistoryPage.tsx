@@ -105,10 +105,10 @@ export function SessionHistoryPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="card p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="card p-3.5 sm:p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {/* Guard */}
         <select
-          className="input text-xs col-span-1"
+          className="input text-xs"
           value={filters.guardId}
           onChange={(e) => setFilters((f) => ({ ...f, guardId: e.target.value, page: 1 }))}
         >
@@ -122,7 +122,7 @@ export function SessionHistoryPage() {
 
         {/* Route */}
         <select
-          className="input text-xs col-span-1"
+          className="input text-xs"
           value={filters.routeId}
           onChange={(e) => setFilters((f) => ({ ...f, routeId: e.target.value, page: 1 }))}
         >
@@ -136,7 +136,7 @@ export function SessionHistoryPage() {
 
         {/* Shift */}
         <select
-          className="input text-xs col-span-1"
+          className="input text-xs"
           value={filters.shift}
           onChange={(e) => setFilters((f) => ({ ...f, shift: e.target.value, page: 1 }))}
         >
@@ -148,7 +148,7 @@ export function SessionHistoryPage() {
 
         {/* Health / Incident Severity */}
         <select
-          className="input text-xs col-span-1"
+          className="input text-xs"
           value={filters.severityFilter}
           onChange={(e) => setFilters((f) => ({ ...f, severityFilter: e.target.value, page: 1 }))}
         >
@@ -161,16 +161,16 @@ export function SessionHistoryPage() {
         {/* From Date */}
         <input
           type="date"
-          className="input text-xs col-span-1"
+          className="input text-xs"
           value={filters.from}
           onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value, page: 1 }))}
         />
 
         {/* To Date & Reset */}
-        <div className="col-span-1 flex gap-2">
+        <div className="flex gap-2">
           <input
             type="date"
-            className="input text-xs flex-1"
+            className="input text-xs flex-1 min-w-0"
             value={filters.to}
             onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value, page: 1 }))}
           />
@@ -187,7 +187,7 @@ export function SessionHistoryPage() {
                 page: 1,
               })
             }
-            className="btn-secondary px-3 text-xs"
+            className="btn-secondary px-3 text-xs shrink-0"
             title="Reset Filters"
           >
             ✕

@@ -32,48 +32,51 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2.5 rounded-xl
            bg-brand-600 hover:bg-brand-500 active:bg-brand-700
            text-white font-semibold text-sm
            transition-all duration-200 ease-out
            shadow-lg shadow-brand-900/30
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           touch-manipulation text-center select-none;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2.5 rounded-xl
            bg-surface-600 hover:bg-surface-500 border border-white/10
            text-gray-200 font-semibold text-sm
            transition-all duration-200 ease-out
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           touch-manipulation text-center select-none;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2.5 rounded-xl
            bg-red-600/20 hover:bg-red-600/40 border border-red-500/30
            text-red-400 font-semibold text-sm
            transition-all duration-200 ease-out
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-50 disabled:cursor-not-allowed
+           touch-manipulation text-center select-none;
   }
 
   .card {
-    @apply bg-surface-800 border border-white/5 rounded-2xl shadow-xl;
+    @apply bg-surface-800 border border-white/5 rounded-2xl shadow-xl max-w-full overflow-hidden;
   }
 
   .input {
-    @apply w-full px-4 py-3 rounded-xl
+    @apply w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl
            bg-surface-700 border border-white/10
-           text-gray-100 placeholder-gray-500
+           text-gray-100 placeholder-gray-500 text-sm
            focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50
            transition-all duration-200;
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-400 mb-1.5;
+    @apply block text-xs sm:text-sm font-medium text-gray-400 mb-1.5;
   }
 
   .badge {
-    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0;
   }
 
   .table-row-hover {

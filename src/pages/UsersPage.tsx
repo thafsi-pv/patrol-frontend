@@ -23,16 +23,16 @@ export function UsersPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Users</h1>
-          <p className="text-gray-500 mt-1">Manage guard and admin accounts.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Users</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Manage guard and admin accounts.</p>
         </div>
-        <button id="btn-new-user" onClick={() => setShowModal(true)} className="btn-primary">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <button id="btn-new-user" onClick={() => setShowModal(true)} className="btn-primary w-full sm:w-auto shrink-0">
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
           </svg>
-          Add User
+          <span>Add User</span>
         </button>
       </div>
 
