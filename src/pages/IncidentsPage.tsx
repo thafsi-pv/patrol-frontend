@@ -56,7 +56,7 @@ export function IncidentsPage() {
       const uploadedImages: { imageUrl: string; r2Key: string }[] = [];
 
       for (let i = 0; i < selectedFiles.length; i++) {
-        setUploadProgress(`Uploading image ${i + 1} of ${selectedFiles.length} to R2…`);
+        setUploadProgress(`Uploading image ${i + 1} of ${selectedFiles.length} …`);
         const result = await uploadImageToR2(selectedFiles[i]);
         uploadedImages.push(result);
       }
@@ -328,7 +328,7 @@ export function IncidentsPage() {
                   disabled={uploading}
                   className="btn-primary text-xs px-5"
                 >
-                  {uploading ? 'Uploading to R2…' : 'Submit Issue Report'}
+                  {uploading ? 'Img Uploading...' : 'Submit Issue Report'}
                 </button>
               </div>
             </form>
