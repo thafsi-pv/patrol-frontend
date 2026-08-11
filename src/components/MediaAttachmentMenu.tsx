@@ -74,6 +74,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioTranscript, setAudioTranscript] = useState('');
   const [hasSpeechAPI, setHasSpeechAPI] = useState(false);
+  const [hasAudioData, setHasAudioData] = useState(false); // tracks if chunks arrived
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<any>(null);
@@ -85,6 +86,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
   // Video recording state
   const [isVideoRecording, setIsVideoRecording] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+  const [hasVideoData, setHasVideoData] = useState(false); // tracks if chunks arrived
   const videoMediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoChunksRef = useRef<Blob[]>([]);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
@@ -177,12 +179,16 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        if (e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+          setHasAudioData(true); // triggers re-render so Attach button enables
+        }
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setRecordingTime(0);
+      setHasAudioData(false); // reset on new recording
 
       // Speech-to-text — NOT supported on iOS Safari
       if (hasSpeechAPI) {
@@ -230,7 +236,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
   };
 
   const handleSaveVoiceNote = () => {
-    if (audioChunksRef.current.length > 0) {
+    if (audioChunksRef.current.length > 0 || hasAudioData) {
       const mimeType = getBestAudioMimeType() || 'audio/webm';
       const ext = extForMime(mimeType);
       const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
@@ -249,6 +255,8 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
     setAudioTranscript('');
     setRecordingTime(0);
     setVoiceError(null);
+    setHasAudioData(false);
+    audioChunksRef.current = [];
     setIsOpen(false);
   };
 
@@ -311,9 +319,13 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
 
     videoMediaRecorderRef.current = mediaRecorder;
     mediaRecorder.ondataavailable = (e) => {
-      if (e.data.size > 0) videoChunksRef.current.push(e.data);
+      if (e.data.size > 0) {
+        videoChunksRef.current.push(e.data);
+        setHasVideoData(true); // triggers re-render so Attach button enables
+      }
     };
     mediaRecorder.start();
+    setHasVideoData(false); // reset on new recording
     setIsVideoRecording(true);
   };
 
@@ -328,7 +340,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
-    if (videoChunksRef.current.length > 0) {
+    if (videoChunksRef.current.length > 0 || hasVideoData) {
       const mimeType = getBestVideoMimeType() || 'video/mp4';
       const ext = extForMime(mimeType);
       const videoBlob = new Blob(videoChunksRef.current, { type: mimeType });
@@ -345,6 +357,8 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
         name: `Video Note (${new Date().toLocaleTimeString()})`,
       });
     }
+    setHasVideoData(false);
+    videoChunksRef.current = [];
     setActiveModal('none');
     setIsOpen(false);
   };
@@ -551,7 +565,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
                   )}
                   <button
                     type="button"
-                    disabled={isRecording || audioChunksRef.current.length === 0}
+                    disabled={isRecording || !hasAudioData}
                     onClick={handleSaveVoiceNote}
                     className="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold text-sm transition-all"
                   >Attach Audio Clip</button>
@@ -634,7 +648,7 @@ export function MediaAttachmentMenu({ onAddAttachment, disabled }: MediaAttachme
               )}
               <button
                 type="button"
-                disabled={isVideoRecording || videoChunksRef.current.length === 0}
+                disabled={isVideoRecording || !hasVideoData}
                 onClick={saveVideoNote}
                 className="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-50 font-semibold text-sm"
               >Attach Video Clip</button>
