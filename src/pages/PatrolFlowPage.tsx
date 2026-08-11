@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useRoutes, useStartPatrol, useScanCheckpoint, useEndPatrol, useSession, useMyActiveSession } from '../hooks/usePatrolSessions';
-import { uploadImageToR2 } from '../hooks/useIncidents';
+import { uploadMediaToCloudinary } from '../hooks/useIncidents';
 import { MediaAttachmentMenu } from '../components/MediaAttachmentMenu';
 
 type FlowPhase = 'select-route' | 'active' | 'scan-qr' | 'checkpoint-form' | 'completed';
@@ -91,11 +91,15 @@ export function PatrolFlowPage() {
       const pos = await new Promise<GeolocationPosition>((res, rej) =>
         navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 15000 }));
 
-      // Upload photos
-      const images: { imageUrl: string; r2Key: string }[] = [];
+      // Upload photos / attachments
+      const images: { imageUrl: string; r2Key: string; mediaType: string }[] = [];
       for (const file of photoFiles) {
-        const img = await uploadImageToR2(file);
-        images.push(img);
+        const res = await uploadMediaToCloudinary(file);
+        images.push({
+          imageUrl: res.imageUrl,
+          r2Key: res.r2Key,
+          mediaType: res.mediaType,
+        });
       }
 
       const result = await scanMutation.mutateAsync({

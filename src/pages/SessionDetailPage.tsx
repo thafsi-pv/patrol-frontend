@@ -8,6 +8,7 @@ export function SessionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: session, isLoading, error } = useSession(id ?? '');
   const [selectedFailedLog, setSelectedFailedLog] = useState<any>(null);
+  const [previewMedia, setPreviewMedia] = useState<{ imageUrl: string; mediaType: string } | null>(null);
 
   const formatDuration = (secs?: number) => {
     if (!secs) return '—';
@@ -237,12 +238,52 @@ export function SessionDetailPage() {
                     </p>
                   )}
                   {log.images && log.images.length > 0 && (
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                      {log.images.map((img: any, j: number) => (
-                        <a key={img.id ?? j} href={img.imageUrl} target="_blank" rel="noreferrer">
-                          <img src={img.imageUrl} className="w-16 h-16 rounded-lg object-cover border border-white/10 hover:opacity-80 transition-opacity" />
-                        </a>
+                    <div className="space-y-1.5 mt-2">
+                      {/* Audio clips first inline */}
+                      {log.images.filter((img: any) => img.mediaType === 'AUDIO').map((img: any) => (
+                        <div key={img.id} className="bg-surface-900/80 p-2 rounded-xl border border-white/5 flex items-center gap-2 max-w-xs">
+                          <span className="text-base shrink-0">🎙️</span>
+                          <audio src={img.imageUrl} controls className="flex-1 h-8 max-w-full" />
+                        </div>
                       ))}
+
+                      {/* Image & Video grids */}
+                      {log.images.filter((img: any) => img.mediaType !== 'AUDIO').length > 0 && (
+                        <div className="flex gap-2 flex-wrap">
+                          {log.images.filter((img: any) => img.mediaType !== 'AUDIO').map((img: any, j: number) => {
+                            const isVideo = img.mediaType === 'VIDEO';
+                            const isFile = img.mediaType === 'FILE';
+                            return (
+                              <button
+                                key={img.id ?? j}
+                                type="button"
+                                onClick={() => setPreviewMedia({ imageUrl: img.imageUrl, mediaType: img.mediaType || 'IMAGE' })}
+                                className="group relative w-16 h-16 rounded-lg overflow-hidden bg-surface-900 border border-white/10 hover:border-brand-500 transition-all flex items-center justify-center"
+                              >
+                                {isVideo ? (
+                                  <>
+                                    <video src={img.imageUrl} className="w-full h-full object-cover opacity-75" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="w-6 h-6 rounded-full bg-black/60 flex items-center justify-center text-white text-[10px]">▶</div>
+                                    </div>
+                                  </>
+                                ) : isFile ? (
+                                  <div className="flex flex-col items-center justify-center text-center p-1">
+                                    <span className="text-lg">📎</span>
+                                    <span className="text-[7px] text-gray-400 mt-0.5 truncate w-12">File</span>
+                                  </div>
+                                ) : (
+                                  <img
+                                    src={img.imageUrl}
+                                    alt="Evidence"
+                                    className="w-full h-full object-cover group-hover:opacity-80 transition-opacity"
+                                  />
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -332,6 +373,58 @@ export function SessionDetailPage() {
             >
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox / Media Preview Modal */}
+      {previewMedia && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setPreviewMedia(null)}
+        >
+          <div
+            className="relative max-w-3xl w-full bg-surface-800 rounded-2xl overflow-hidden border border-white/10 p-5 space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewMedia(null)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/60 hover:bg-black/90 rounded-full text-white flex items-center justify-center font-bold text-sm transition-colors"
+            >
+              ✕
+            </button>
+            <h3 className="text-sm font-semibold text-white">Evidence Attachment</h3>
+            <div className="flex justify-center items-center max-h-[70vh]">
+              {previewMedia.mediaType === 'AUDIO' ? (
+                <div className="py-12 px-6 flex flex-col items-center gap-4 bg-surface-900 rounded-xl w-full max-w-md border border-white/5">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-3xl">
+                    🎙️
+                  </div>
+                  <audio src={previewMedia.imageUrl} controls autoPlay className="w-full" />
+                  <p className="text-xs text-gray-400">Voice Recording / Audio Note</p>
+                </div>
+              ) : previewMedia.mediaType === 'VIDEO' ? (
+                <video src={previewMedia.imageUrl} controls autoPlay className="w-full max-h-[60vh] rounded-lg bg-black" />
+              ) : previewMedia.mediaType === 'FILE' ? (
+                <div className="py-12 px-6 flex flex-col items-center gap-4 bg-surface-900 rounded-xl w-full max-w-md border border-white/5 text-center">
+                  <div className="w-16 h-16 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-400 text-3xl">
+                    📎
+                  </div>
+                  <p className="text-sm font-medium text-white">Document Attachment</p>
+                  <a
+                    href={previewMedia.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-primary text-xs px-4 py-2"
+                  >
+                    Download File
+                  </a>
+                </div>
+              ) : (
+                <img src={previewMedia.imageUrl} alt="Evidence Preview" className="max-w-full max-h-[60vh] object-contain rounded-lg" />
+              )}
+            </div>
+            <p className="text-center text-[10px] text-gray-500">Click outer area to close</p>
           </div>
         </div>
       )}

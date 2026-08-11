@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useCheckpoints } from '../hooks/useCheckpoints';
-import { useCreateIncident, uploadImageToR2, useIncidents } from '../hooks/useIncidents';
+import { useCreateIncident, uploadMediaToCloudinary, useIncidents } from '../hooks/useIncidents';
 import { MediaAttachmentMenu } from '../components/MediaAttachmentMenu';
 
 export function IncidentsPage() {
@@ -24,6 +24,8 @@ export function IncidentsPage() {
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const [previewMedia, setPreviewMedia] = useState<{ imageUrl: string; mediaType: string } | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -43,11 +45,11 @@ export function IncidentsPage() {
       setUploading(true);
       setError(null);
 
-      const uploadedImages: { imageUrl: string; r2Key: string }[] = [];
+      const uploadedImages: { imageUrl: string; r2Key: string; mediaType: string }[] = [];
 
       for (let i = 0; i < selectedFiles.length; i++) {
-        setUploadProgress(`Uploading image ${i + 1} of ${selectedFiles.length} …`);
-        const result = await uploadImageToR2(selectedFiles[i]);
+        setUploadProgress(`Uploading media ${i + 1} of ${selectedFiles.length} …`);
+        const result = await uploadMediaToCloudinary(selectedFiles[i]);
         uploadedImages.push(result);
       }
 
@@ -126,31 +128,59 @@ export function IncidentsPage() {
                 )}
               </div>
 
-              {/* Photo gallery */}
+              {/* Multimodal Evidence gallery */}
               {incident.images && incident.images.length > 0 && (
                 <div className="space-y-1.5">
-                  <p className="text-[11px] text-gray-500 font-medium">Evidence Photos ({incident.images.length})</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {incident.images.map((img) => (
-                      <a
-                        key={img.id}
-                        href={img.imageUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative aspect-square rounded-lg overflow-hidden bg-surface-900 border border-white/5"
-                      >
-                        <img
-                          src={img.imageUrl}
-                          alt="Issue evidence"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                        </div>
-                      </a>
+                  <p className="text-[11px] text-gray-500 font-medium">Evidence & Attachments ({incident.images.length})</p>
+                  <div className="flex flex-col gap-2">
+                    {/* Audio clips first inline */}
+                    {incident.images.filter(img => img.mediaType === 'AUDIO').map((img) => (
+                      <div key={img.id} className="bg-surface-900/80 p-2 rounded-xl border border-white/5 flex items-center gap-2">
+                        <span className="text-base shrink-0">🎙️</span>
+                        <audio src={img.imageUrl} controls className="flex-1 h-8 max-w-full" />
+                      </div>
                     ))}
+
+                    {/* Image & Video grids */}
+                    {incident.images.filter(img => img.mediaType !== 'AUDIO').length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {incident.images.filter(img => img.mediaType !== 'AUDIO').map((img) => {
+                          const isVideo = img.mediaType === 'VIDEO';
+                          const isFile = img.mediaType === 'FILE';
+                          return (
+                            <button
+                              key={img.id}
+                              type="button"
+                              onClick={() => setPreviewMedia({ imageUrl: img.imageUrl, mediaType: img.mediaType || 'IMAGE' })}
+                              className="group relative aspect-square rounded-lg overflow-hidden bg-surface-900 border border-white/5 flex items-center justify-center"
+                            >
+                              {isVideo ? (
+                                <>
+                                  <video src={img.imageUrl} className="w-full h-full object-cover opacity-75" />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white text-xs group-hover:bg-brand-500 transition-colors">▶</div>
+                                  </div>
+                                </>
+                              ) : isFile ? (
+                                <div className="flex flex-col items-center justify-center text-center p-1">
+                                  <span className="text-xl">📎</span>
+                                  <span className="text-[8px] text-gray-400 mt-1 truncate w-full">Document</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={img.imageUrl}
+                                  alt="Issue evidence"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                                />
+                              )}
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span className="text-[10px] text-white font-medium">View</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -303,6 +333,58 @@ export function IncidentsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox / Media Preview Modal */}
+      {previewMedia && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setPreviewMedia(null)}
+        >
+          <div
+            className="relative max-w-3xl w-full bg-surface-800 rounded-2xl overflow-hidden border border-white/10 p-5 space-y-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewMedia(null)}
+              className="absolute top-4 right-4 z-10 w-8 h-8 bg-black/60 hover:bg-black/90 rounded-full text-white flex items-center justify-center font-bold text-sm transition-colors"
+            >
+              ✕
+            </button>
+            <h3 className="text-sm font-semibold text-white">Evidence Attachment</h3>
+            <div className="flex justify-center items-center max-h-[70vh]">
+              {previewMedia.mediaType === 'AUDIO' ? (
+                <div className="py-12 px-6 flex flex-col items-center gap-4 bg-surface-900 rounded-xl w-full max-w-md border border-white/5">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-3xl">
+                    🎙️
+                  </div>
+                  <audio src={previewMedia.imageUrl} controls autoPlay className="w-full" />
+                  <p className="text-xs text-gray-400">Voice Recording / Audio Note</p>
+                </div>
+              ) : previewMedia.mediaType === 'VIDEO' ? (
+                <video src={previewMedia.imageUrl} controls autoPlay className="w-full max-h-[60vh] rounded-lg bg-black" />
+              ) : previewMedia.mediaType === 'FILE' ? (
+                <div className="py-12 px-6 flex flex-col items-center gap-4 bg-surface-900 rounded-xl w-full max-w-md border border-white/5 text-center">
+                  <div className="w-16 h-16 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-400 text-3xl">
+                    📎
+                  </div>
+                  <p className="text-sm font-medium text-white">Document Attachment</p>
+                  <a
+                    href={previewMedia.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="btn-primary text-xs px-4 py-2"
+                  >
+                    Download File
+                  </a>
+                </div>
+              ) : (
+                <img src={previewMedia.imageUrl} alt="Evidence Preview" className="max-w-full max-h-[60vh] object-contain rounded-lg" />
+              )}
+            </div>
+            <p className="text-center text-[10px] text-gray-500">Click outer area to close</p>
           </div>
         </div>
       )}

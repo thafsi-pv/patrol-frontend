@@ -5,6 +5,7 @@ export interface IssueImage {
   id: string;
   imageUrl: string;
   r2Key: string;
+  mediaType?: string; // 'IMAGE' | 'AUDIO' | 'VIDEO' | 'FILE'
 }
 
 export interface IncidentReport {
@@ -42,7 +43,7 @@ export interface CreateIncidentPayload {
   description?: string;
   checkpointId?: string;
   patrolLogId?: string;
-  images: { imageUrl: string; r2Key: string }[];
+  images: { imageUrl: string; r2Key: string; mediaType?: string }[];
 }
 
 export function useIncidents() {
@@ -71,14 +72,25 @@ export function useCreateIncident() {
 /**
  * Utility to request a signed Cloudinary upload params from backend and upload media directly to Cloudinary
  */
-export async function uploadMediaToCloudinary(file: File): Promise<{ imageUrl: string; r2Key: string }> {
+export async function uploadMediaToCloudinary(file: File): Promise<{ imageUrl: string; r2Key: string; mediaType: string }> {
   // 1. Determine extension and resource type
   const ext = file.name.split('.').pop() || 'file';
   let resourceType = 'auto';
-  if (file.type.startsWith('image/')) resourceType = 'image';
-  else if (file.type.startsWith('video/')) resourceType = 'video';
-  else if (file.type.startsWith('audio/')) resourceType = 'video'; // Cloudinary handles audio under video endpoint
-  else resourceType = 'raw';
+  let mediaType = 'FILE';
+
+  if (file.type.startsWith('image/')) {
+    resourceType = 'image';
+    mediaType = 'IMAGE';
+  } else if (file.type.startsWith('video/')) {
+    resourceType = 'video';
+    mediaType = 'VIDEO';
+  } else if (file.type.startsWith('audio/')) {
+    resourceType = 'video'; // Cloudinary handles audio under video endpoint
+    mediaType = 'AUDIO';
+  } else {
+    resourceType = 'raw';
+    mediaType = 'FILE';
+  }
 
   const presignedRes = await apiClient.post<PresignedUrlResponse>('/incidents/upload-url', {
     contentType: file.type || 'application/octet-stream',
@@ -91,7 +103,7 @@ export async function uploadMediaToCloudinary(file: File): Promise<{ imageUrl: s
   // 2. Direct upload to Cloudinary using FormData (or mock mode fallback if not configured yet)
   if (uploadUrl.includes('mock=true')) {
     console.warn('Cloudinary credentials not configured in .env yet. Using object URL fallback.');
-    return { imageUrl: URL.createObjectURL(file), r2Key };
+    return { imageUrl: URL.createObjectURL(file), r2Key, mediaType };
   }
 
   const formData = new FormData();
@@ -116,6 +128,7 @@ export async function uploadMediaToCloudinary(file: File): Promise<{ imageUrl: s
   return {
     imageUrl: resData.secure_url || imageUrl,
     r2Key: resData.public_id || r2Key,
+    mediaType,
   };
 }
 
