@@ -21,9 +21,9 @@ const isIOS = () =>
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
-/** Pick the best supported audio MIME type for MediaRecorder */
+/** Pick the best supported audio MIME type for MediaRecorder (prefer native WhatsApp Ogg Opus) */
 function getBestAudioMimeType(): string {
-  const types = ['audio/mp4', 'audio/aac', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg'];
+  const types = ['audio/ogg;codecs=opus', 'audio/ogg', 'audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/aac'];
   for (const type of types) {
     if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported(type)) {
       return type;
