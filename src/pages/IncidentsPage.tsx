@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useCheckpoints } from '../hooks/useCheckpoints';
 import { useCreateIncident, uploadImageToR2, useIncidents } from '../hooks/useIncidents';
+import { MediaAttachmentMenu } from '../components/MediaAttachmentMenu';
 
 export function IncidentsPage() {
   const { data: incidents, isLoading } = useIncidents();
@@ -17,17 +18,6 @@ export function IncidentsPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    setSelectedFiles((prev) => [...prev, ...files]);
-
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setPreviewUrls((prev) => [...prev, ...newPreviews]);
-  };
 
   const removeImage = (index: number) => {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
@@ -237,67 +227,48 @@ export function IncidentsPage() {
               </div>
 
               {/* Photo Upload Area: Camera vs Gallery */}
+              {/* Multimodal Attachment Action Bar matching reference design */}
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">
-                  Evidence Photos * (Camera or Gallery)
+                <label className="block text-xs font-semibold text-gray-400 mb-1.5">
+                  Attachments & Evidence (Photos, Voice, Video, Text)
                 </label>
-
-                {/* Hidden File Inputs */}
-                {/* 1. Camera Input (capture="environment") */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                {/* 2. Gallery Input (multiple selection) */}
-                <input
-                  id="gallery-file-input"
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-
-                {/* Dual Action Buttons */}
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 hover:bg-brand-500/30 transition-all text-xs font-semibold"
-                  >
-                    <svg className="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Take Photo (Camera)
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => document.getElementById('gallery-file-input')?.click()}
-                    className="flex items-center justify-center gap-2 p-3 rounded-xl bg-surface-700/50 border border-white/10 text-gray-200 hover:bg-surface-700 transition-all text-xs font-semibold"
-                  >
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    Choose from Gallery
-                  </button>
+                <div className="flex items-center gap-3 bg-surface-900/80 p-2.5 rounded-xl border border-white/10">
+                  <MediaAttachmentMenu
+                    disabled={uploading}
+                    onAddAttachment={(item) => {
+                      if (item.file) {
+                        setSelectedFiles((prev) => [...prev, item.file!]);
+                        setPreviewUrls((prev) => [...prev, item.previewUrl]);
+                      }
+                      if (item.textNote) {
+                        setDescription((prev) => prev ? `${prev}\n\n[Attachment Note]: ${item.textNote}` : item.textNote!);
+                      }
+                    }}
+                  />
+                  <div className="text-xs text-gray-400">
+                    Click <span className="font-bold text-white">+</span> to attach photos, record voice notes, add text, or record video.
+                  </div>
                 </div>
 
-                {/* Selected Image Previews */}
+                {/* Selected Attachments Previews */}
                 {previewUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mt-2">
+                  <div className="grid grid-cols-4 gap-2 mt-3">
                     {previewUrls.map((url, idx) => (
                       <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900 group">
-                        <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                        {selectedFiles[idx]?.type?.startsWith('video/') ? (
+                          <video src={url} className="w-full h-full object-cover" />
+                        ) : selectedFiles[idx]?.type?.startsWith('audio/') ? (
+                          <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-950/40 p-1 text-center">
+                            <span className="text-lg">🎙️</span>
+                            <span className="text-[9px] text-emerald-300 truncate w-full px-1">Audio</span>
+                          </div>
+                        ) : (
+                          <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                        )}
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-90 hover:opacity-100"
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-90 hover:opacity-100 shadow"
                         >
                           ✕
                         </button>
@@ -328,7 +299,7 @@ export function IncidentsPage() {
                   disabled={uploading}
                   className="btn-primary text-xs px-5"
                 >
-                  {uploading ? 'Img Uploading...' : 'Submit Issue Report'}
+                  {uploading ? 'Uploading...' : 'Submit Report'}
                 </button>
               </div>
             </form>

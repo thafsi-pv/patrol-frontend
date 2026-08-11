@@ -69,21 +69,28 @@ export function useCreateIncident() {
 }
 
 /**
- * Utility to request a signed Cloudinary upload params from backend and upload image directly to Cloudinary
+ * Utility to request a signed Cloudinary upload params from backend and upload media directly to Cloudinary
  */
-export async function uploadImageToR2(file: File): Promise<{ imageUrl: string; r2Key: string }> {
-  // 1. Get signed upload parameters from backend
-  const ext = file.name.split('.').pop() || 'jpg';
+export async function uploadMediaToCloudinary(file: File): Promise<{ imageUrl: string; r2Key: string }> {
+  // 1. Determine extension and resource type
+  const ext = file.name.split('.').pop() || 'file';
+  let resourceType = 'auto';
+  if (file.type.startsWith('image/')) resourceType = 'image';
+  else if (file.type.startsWith('video/')) resourceType = 'video';
+  else if (file.type.startsWith('audio/')) resourceType = 'video'; // Cloudinary handles audio under video endpoint
+  else resourceType = 'raw';
+
   const presignedRes = await apiClient.post<PresignedUrlResponse>('/incidents/upload-url', {
-    contentType: file.type || 'image/jpeg',
+    contentType: file.type || 'application/octet-stream',
     fileExtension: ext,
+    resourceType,
   });
 
   const { uploadUrl, imageUrl, r2Key, timestamp, signature, apiKey } = presignedRes.data;
 
   // 2. Direct upload to Cloudinary using FormData (or mock mode fallback if not configured yet)
   if (uploadUrl.includes('mock=true')) {
-    console.warn('Cloudinary credentials not configured in .env yet. Using mock image URL.');
+    console.warn('Cloudinary credentials not configured in .env yet. Using object URL fallback.');
     return { imageUrl: URL.createObjectURL(file), r2Key };
   }
 
@@ -101,7 +108,7 @@ export async function uploadImageToR2(file: File): Promise<{ imageUrl: string; r
 
   if (!uploadRes.ok) {
     const errJson = await uploadRes.json().catch(() => ({}));
-    throw new Error(`Failed to upload image (${errJson?.error?.message || uploadRes.statusText})`);
+    throw new Error(`Failed to upload media (${errJson?.error?.message || uploadRes.statusText})`);
   }
 
   const resData = await uploadRes.json();
@@ -111,3 +118,7 @@ export async function uploadImageToR2(file: File): Promise<{ imageUrl: string; r
     r2Key: resData.public_id || r2Key,
   };
 }
+
+// Backward-compatible alias
+export const uploadImageToR2 = uploadMediaToCloudinary;
+

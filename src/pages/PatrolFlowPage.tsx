@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { useRoutes, useStartPatrol, useScanCheckpoint, useEndPatrol, useSession, useMyActiveSession } from '../hooks/usePatrolSessions';
 import { uploadImageToR2 } from '../hooks/useIncidents';
+import { MediaAttachmentMenu } from '../components/MediaAttachmentMenu';
 
 type FlowPhase = 'select-route' | 'active' | 'scan-qr' | 'checkpoint-form' | 'completed';
 
@@ -39,8 +40,6 @@ export function PatrolFlowPage() {
   const [lastScanResult, setLastScanResult] = useState<any>(null);
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
   const scannerDivId = 'patrol-qr-scanner';
 
   // Fetch session details for progress, with active session fallback
@@ -74,14 +73,6 @@ export function PatrolFlowPage() {
       setSessionId(sess.id);
       setPhase('active');
     } catch { setError('Failed to start patrol'); }
-  };
-
-  // ─── Handle photo selection ──────────────────────────────────────────────────
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    setPhotoFiles(prev => [...prev, ...files]);
-    setPhotoPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
   };
 
   // ─── Submit checkpoint form ───────────────────────────────────────────────────
@@ -483,30 +474,43 @@ export function PatrolFlowPage() {
               />
             </div>
 
-            {/* Photo — optional unless issue/emergency */}
+            {/* Photo & Multimodal Attachments */}
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-2">
-                Photo Evidence {severity !== 'NORMAL' ? '(Required)' : '(Optional)'}
+                Evidence Attachments {severity !== 'NORMAL' ? '(Required)' : '(Optional)'}
               </label>
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoChange} />
-              <input ref={galleryInputRef} id="patrol-gallery" type="file" accept="image/*" multiple className="hidden" onChange={handlePhotoChange} />
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <button type="button" onClick={() => cameraInputRef.current?.click()}
+              <div className="flex items-center gap-3 bg-surface-900/80 p-2.5 rounded-xl border border-white/10 mb-3">
+                <MediaAttachmentMenu
                   disabled={submitting}
-                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-brand-600/20 border border-brand-500/30 text-brand-300 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-                  📷 Camera
-                </button>
-                <button type="button" onClick={() => galleryInputRef.current?.click()}
-                  disabled={submitting}
-                  className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-surface-700/50 border border-white/10 text-gray-200 text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-                  🖼️ Gallery
-                </button>
+                  onAddAttachment={(item) => {
+                    if (item.file) {
+                      setPhotoFiles((prev) => [...prev, item.file!]);
+                      setPhotoPreviews((prev) => [...prev, item.previewUrl]);
+                    }
+                    if (item.textNote) {
+                      setRemarks((prev) => prev ? `${prev}\n\n[Voice/Note]: ${item.textNote}` : item.textNote!);
+                    }
+                  }}
+                />
+                <div className="text-xs text-gray-400">
+                  Click <span className="font-bold text-white">+</span> to attach photos, record voice notes, add text, or record video.
+                </div>
               </div>
+
               {photoPreviews.length > 0 && (
                 <div className="grid grid-cols-4 gap-2">
                   {photoPreviews.map((url, i) => (
-                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-white/10">
-                      <img src={url} className="w-full h-full object-cover" />
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900">
+                      {photoFiles[i]?.type?.startsWith('video/') ? (
+                        <video src={url} className="w-full h-full object-cover" />
+                      ) : photoFiles[i]?.type?.startsWith('audio/') ? (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-950/40 p-1 text-center">
+                          <span className="text-lg">🎙️</span>
+                          <span className="text-[9px] text-emerald-300 truncate w-full px-1">Audio</span>
+                        </div>
+                      ) : (
+                        <img src={url} className="w-full h-full object-cover" />
+                      )}
                       <button type="button" onClick={() => { setPhotoFiles(p => p.filter((_, j) => j !== i)); setPhotoPreviews(p => p.filter((_, j) => j !== i)); }}
                         disabled={submitting}
                         className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-600 rounded-full text-[10px] text-white flex items-center justify-center disabled:opacity-0 disabled:pointer-events-none">✕</button>
