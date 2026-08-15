@@ -6,7 +6,7 @@ import { useMyActiveSession } from '../hooks/usePatrolSessions';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: HomeIcon, roles: ['ADMIN', 'GUARD'] as const },
-  { to: '/patrol', label: 'Start Patrol', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
+  { to: '/patrol', label: 'Start Patrol', icon: PatrolRouteIcon, roles: ['ADMIN', 'GUARD'] as const },
   { to: '/scan', label: 'Quick Scan', icon: ScanIcon, roles: ['ADMIN', 'GUARD'] as const },
   { to: '/whatsapp', label: 'WhatsApp Link', icon: LinkIcon, roles: ['ADMIN'] as const },
   { to: '/monitor', label: 'Live Monitor', icon: ShieldIcon, roles: ['ADMIN'] as const },
@@ -288,6 +288,20 @@ function ShieldIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+    </svg>
+  );
+}
+/** Ladder / patrol-route icon — represents structured sequential patrol */
+function PatrolRouteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      {/* Two vertical rails */}
+      <line x1="5" y1="3" x2="5" y2="21" strokeLinecap="round" />
+      <line x1="19" y1="3" x2="19" y2="21" strokeLinecap="round" />
+      {/* Rungs */}
+      <line x1="5" y1="7" x2="19" y2="7" strokeLinecap="round" />
+      <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
+      <line x1="5" y1="17" x2="19" y2="17" strokeLinecap="round" />
     </svg>
   );
 }

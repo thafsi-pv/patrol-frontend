@@ -82,9 +82,6 @@ export function IncidentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">Reported Issues & Incidents</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Guards can upload multi-photo evidence directly.
-          </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -242,47 +239,43 @@ export function IncidentsPage() {
                 </select>
               </div>
 
+              {/* Remarks + inline attachment icons */}
               <div>
                 <label className="block text-xs font-semibold text-gray-400 mb-1">
                   Issue Description *
                 </label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Describe the issue in detail (location, severity, what happened)..."
-                  className="input text-sm"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-
-              {/* Photo Upload Area: Camera vs Gallery */}
-              {/* Multimodal Attachment Action Bar matching reference design */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1.5">
-                  Attachments & Evidence (Photos, Voice, Video, Text)
-                </label>
-                <div className="flex items-center gap-3 bg-surface-900/80 p-2.5 rounded-xl border border-white/10">
-                  <MediaAttachmentMenu
-                    disabled={uploading}
-                    onAddAttachment={(item) => {
-                      if (item.file) {
-                        setSelectedFiles((prev) => [...prev, item.file!]);
-                        setPreviewUrls((prev) => [...prev, item.previewUrl]);
-                      }
-                      if (item.textNote) {
-                        setDescription((prev) => prev ? `${prev}\n\n[Attachment Note]: ${item.textNote}` : item.textNote!);
-                      }
-                    }}
+                <div className="relative">
+                  <textarea
+                    rows={4}
+                    required
+                    placeholder="Describe the issue in detail (location, severity, what happened)..."
+                    className="input text-sm pr-32"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                   />
-                  <div className="text-xs text-gray-400">
-                    Click <span className="font-bold text-white">+</span> to attach photos, record voice notes, add text, or record video.
+                  {/* Inline attachment icon buttons */}
+                  <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                    <MediaAttachmentMenu
+                      disabled={uploading}
+                      onAddAttachment={(item) => {
+                        if (item.file) {
+                          setSelectedFiles((prev) => [...prev, item.file!]);
+                          setPreviewUrls((prev) => [...prev, item.previewUrl]);
+                        }
+                        if (item.textNote) {
+                          setDescription((prev) => prev ? `${prev}\n\n[Attachment Note]: ${item.textNote}` : item.textNote!);
+                        }
+                      }}
+                    />
                   </div>
                 </div>
+              </div>
 
-                {/* Selected Attachments Previews */}
-                {previewUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-2 mt-3">
+              {/* Attachments preview */}
+              {previewUrls.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 mb-2">Attachments ({previewUrls.length})</label>
+                  <div className="grid grid-cols-4 gap-2">
                     {previewUrls.map((url, idx) => (
                       <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900 group">
                         {selectedFiles[idx]?.type?.startsWith('video/') ? (
@@ -299,14 +292,12 @@ export function IncidentsPage() {
                           type="button"
                           onClick={() => removeImage(idx)}
                           className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-90 hover:opacity-100 shadow"
-                        >
-                          ✕
-                        </button>
+                        >✕</button>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {uploadProgress && (
                 <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs flex items-center gap-2">

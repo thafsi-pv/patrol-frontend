@@ -207,8 +207,21 @@ export function PatrolFlowPage() {
                 <option value="Night">Night</option>
               </select>
             </div>
-            <button onClick={handleStart} disabled={startMutation.isPending} className="btn-primary w-full py-3">
-              {startMutation.isPending ? 'Starting…' : '🚀 Start Patrol'}
+            <button onClick={handleStart} disabled={startMutation.isPending} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
+              {startMutation.isPending ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Starting…</>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <line x1="5" y1="3" x2="5" y2="21" strokeLinecap="round" />
+                    <line x1="19" y1="3" x2="19" y2="21" strokeLinecap="round" />
+                    <line x1="5" y1="7" x2="19" y2="7" strokeLinecap="round" />
+                    <line x1="5" y1="12" x2="19" y2="12" strokeLinecap="round" />
+                    <line x1="5" y1="17" x2="19" y2="17" strokeLinecap="round" />
+                  </svg>
+                  Start Patrol
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -468,40 +481,39 @@ export function PatrolFlowPage() {
               </div>
             </div>
 
-            {/* Remarks */}
+            {/* Remarks + inline attachment icons */}
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1">Remarks {severity !== 'NORMAL' && '*'}</label>
-              <textarea rows={2} className="input text-sm" value={remarks}
-                onChange={e => setRemarks(e.target.value)}
-                disabled={submitting}
-                placeholder={severity === 'NORMAL' ? 'Optional remarks…' : 'Describe the issue or emergency…'}
-              />
-            </div>
-
-            {/* Photo & Multimodal Attachments */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-2">
-                Evidence Attachments {severity !== 'NORMAL' ? '(Required)' : '(Optional)'}
-              </label>
-              <div className="flex items-center gap-3 bg-surface-900/80 p-2.5 rounded-xl border border-white/10 mb-3">
-                <MediaAttachmentMenu
+              <div className="relative">
+                <textarea rows={3} className="input text-sm pr-32" value={remarks}
+                  onChange={e => setRemarks(e.target.value)}
                   disabled={submitting}
-                  onAddAttachment={(item) => {
-                    if (item.file) {
-                      setPhotoFiles((prev) => [...prev, item.file!]);
-                      setPhotoPreviews((prev) => [...prev, item.previewUrl]);
-                    }
-                    if (item.textNote) {
-                      setRemarks((prev) => prev ? `${prev}\n\n[Voice/Note]: ${item.textNote}` : item.textNote!);
-                    }
-                  }}
+                  placeholder={severity === 'NORMAL' ? 'Optional remarks…' : 'Describe the issue or emergency…'}
                 />
-                <div className="text-xs text-gray-400">
-                  Click <span className="font-bold text-white">+</span> to attach photos, record voice notes, add text, or record video.
+                {/* Icon buttons anchored to bottom-right of textarea */}
+                <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                  <MediaAttachmentMenu
+                    disabled={submitting}
+                    onAddAttachment={(item) => {
+                      if (item.file) {
+                        setPhotoFiles((prev) => [...prev, item.file!]);
+                        setPhotoPreviews((prev) => [...prev, item.previewUrl]);
+                      }
+                      if (item.textNote) {
+                        setRemarks((prev) => prev ? `${prev}\n\n[Voice/Note]: ${item.textNote}` : item.textNote!);
+                      }
+                    }}
+                  />
                 </div>
               </div>
+            </div>
 
-              {photoPreviews.length > 0 && (
+            {/* Evidence Attachments preview */}
+            {photoPreviews.length > 0 && (
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-2">
+                  Evidence Attachments {severity !== 'NORMAL' ? '(Required)' : '(Optional)'}
+                </label>
                 <div className="grid grid-cols-4 gap-2">
                   {photoPreviews.map((url, i) => (
                     <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 bg-surface-900">
@@ -521,8 +533,8 @@ export function PatrolFlowPage() {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={() => setPhase('active')} disabled={submitting} className="btn-secondary text-xs flex-1 disabled:opacity-30 disabled:cursor-not-allowed">Cancel</button>
