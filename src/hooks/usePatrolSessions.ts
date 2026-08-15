@@ -12,6 +12,7 @@ export interface RouteCheckpoint {
     latitude: number;
     longitude: number;
     radiusMeters: number;
+    qrCode: string;
   };
 }
 

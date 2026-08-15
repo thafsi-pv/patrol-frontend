@@ -162,9 +162,9 @@ export function PatrolFlowPage() {
   const nextCheckpoint = nextCheckpointObj?.checkpoint;
 
   const severityConfig = {
-    NORMAL: { label: '✅ Normal', cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300' },
-    ISSUE_FOUND: { label: '⚠️ Issue Found', cls: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
-    EMERGENCY: { label: '🚨 Emergency', cls: 'border-red-500/40 bg-red-500/10 text-red-300' },
+    NORMAL: { label: 'Normal', cls: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300', icon: 'M5 13l4 4L19 7' },
+    ISSUE_FOUND: { label: 'Issue Found', cls: 'border-amber-500/40 bg-amber-500/10 text-amber-300', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
+    EMERGENCY: { label: 'Emergency', cls: 'border-red-500/40 bg-red-500/10 text-red-300', icon: 'M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a9 9 0 010-12.728m0 0l2.829 2.829' },
   };
 
   if (activeLoading && !session && !sessionId) {
@@ -384,9 +384,20 @@ export function PatrolFlowPage() {
             <h2 className="text-lg font-bold text-white">Checkpoint Report</h2>
           </div>
 
-          <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-mono">
-            QR: {scannedQr}
-          </div>
+          {/* Scanned Checkpoint */}
+          {scannedQr && (() => {
+            const matchedCheckpoint = routeCheckpoints.find((rc: any) => rc.checkpoint.qrCode === scannedQr);
+            const displayName = matchedCheckpoint?.checkpoint.name || 'Unknown Checkpoint';
+            return (
+              <div className="p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-300 text-xs font-medium flex items-center gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Checkpoint: <strong className="text-brand-200">{displayName}</strong></span>
+              </div>
+            );
+          })()}
 
           {/* Out-of-Range Error Card */}
           {outOfRangeInfo && (
@@ -470,42 +481,47 @@ export function PatrolFlowPage() {
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-2">Status *</label>
               <div className="grid grid-cols-3 gap-2">
-                {(['NORMAL', 'ISSUE_FOUND', 'EMERGENCY'] as const).map(s => (
-                  <button key={s} type="button" onClick={() => setSeverity(s)}
-                    disabled={submitting}
-                    className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all disabled:opacity-40 disabled:cursor-not-allowed ${severity === s ? severityConfig[s].cls : 'border-white/10 bg-surface-900/50 text-gray-500 hover:border-white/20'}`}
-                  >
-                    {severityConfig[s].label}
-                  </button>
-                ))}
+                {(['NORMAL', 'ISSUE_FOUND', 'EMERGENCY'] as const).map(s => {
+                  const cfg = severityConfig[s];
+                  return (
+                    <button key={s} type="button" onClick={() => setSeverity(s)}
+                      disabled={submitting}
+                      className={`p-2.5 rounded-xl border text-xs font-semibold text-center transition-all disabled:opacity-40 disabled:cursor-not-allowed flex flex-col items-center gap-1.5 ${severity === s ? cfg.cls : 'border-white/10 bg-surface-900/50 text-gray-500 hover:border-white/20'}`}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d={cfg.icon} />
+                      </svg>
+                      <span>{cfg.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Remarks + inline attachment icons */}
+            {/* Remarks */}
             <div>
               <label className="block text-xs font-semibold text-gray-400 mb-1">Remarks {severity !== 'NORMAL' && '*'}</label>
-              <div className="relative">
-                <textarea rows={3} className="input text-sm pr-32" value={remarks}
-                  onChange={e => setRemarks(e.target.value)}
-                  disabled={submitting}
-                  placeholder={severity === 'NORMAL' ? 'Optional remarks…' : 'Describe the issue or emergency…'}
-                />
-                {/* Icon buttons anchored to bottom-right of textarea */}
-                <div className="absolute bottom-2 right-2 flex items-center gap-1">
-                  <MediaAttachmentMenu
-                    disabled={submitting}
-                    onAddAttachment={(item) => {
-                      if (item.file) {
-                        setPhotoFiles((prev) => [...prev, item.file!]);
-                        setPhotoPreviews((prev) => [...prev, item.previewUrl]);
-                      }
-                      if (item.textNote) {
-                        setRemarks((prev) => prev ? `${prev}\n\n[Voice/Note]: ${item.textNote}` : item.textNote!);
-                      }
-                    }}
-                  />
-                </div>
-              </div>
+              <textarea rows={3} className="input text-sm" value={remarks}
+                onChange={e => setRemarks(e.target.value)}
+                disabled={submitting}
+                placeholder={severity === 'NORMAL' ? 'Optional remarks…' : 'Describe the issue or emergency…'}
+              />
+            </div>
+
+            {/* Attachment buttons row below textarea */}
+            <div className="flex items-center gap-2">
+              <MediaAttachmentMenu
+                disabled={submitting}
+                onAddAttachment={(item) => {
+                  if (item.file) {
+                    setPhotoFiles((prev) => [...prev, item.file!]);
+                    setPhotoPreviews((prev) => [...prev, item.previewUrl]);
+                  }
+                  if (item.textNote) {
+                    setRemarks((prev) => prev ? `${prev}\n\n[Voice/Note]: ${item.textNote}` : item.textNote!);
+                  }
+                }}
+              />
             </div>
 
             {/* Evidence Attachments preview */}
@@ -537,9 +553,17 @@ export function PatrolFlowPage() {
             )}
 
             <div className="flex gap-2 pt-2">
-              <button type="button" onClick={() => setPhase('active')} disabled={submitting} className="btn-secondary text-xs flex-1 disabled:opacity-30 disabled:cursor-not-allowed">Cancel</button>
-              <button type="submit" disabled={submitting} className="btn-primary text-xs flex-1 py-3">
-                {submitting ? 'Submitting…' : '✅ Submit & Continue'}
+              <button type="button" onClick={() => setPhase('active')} disabled={submitting} className="btn-secondary text-xs flex-1 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-1.5">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+              </button>
+              <button type="submit" disabled={submitting} className="btn-primary text-xs flex-1 py-3 flex items-center justify-center gap-1.5">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {submitting ? 'Submitting…' : 'Submit & Continue'}
               </button>
             </div>
           </form>
